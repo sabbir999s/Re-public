@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="bn">
 <head>
@@ -5,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Meshchain.Ai</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -18,7 +21,7 @@
           <p id="user-name" class="username">লোড হচ্ছে...</p>
           <div class="verified-badge">Verified</div>
         </div>
-        <p class="balance">ব্যালেন্স: 00 টাকা</p>
+        <p class="balance">Balance: <span id="balance">0</span>৳</p>
       </div>
     </div>
   </header>
@@ -30,11 +33,11 @@
     <div class="stats-grid">
       <div class="stat-card">
         <p class="stat-label">Daily Ads Watched</p>
-        <h2 class="stat-value">0 / 10</h2>
+        <h2 class="stat-value" id="ads-watched">0 / 10</h2>
       </div>
       <div class="stat-card">
         <p class="stat-label">Total Referrals</p>
-        <h2 class="stat-value">0</h2>
+        <h2 class="stat-value" id="refer-count">0</h2>
       </div>
     </div>
 
@@ -61,163 +64,248 @@
 
   <!-- JavaScript -->
   <script>
-    const tg = window.Telegram.WebApp;
-    tg.ready();
-    tg.expand();
-  
-  
+    // index.html-এর জন্য সম্পূর্ণ নতুন JavaScript
+  const firebaseConfig = {
+  apiKey: "AIzaSyCmlgT1e5tWCWQ6yKSO6Z3vd8EJqdgso8A",
+  authDomain: "redroseadmin.firebaseapp.com",
+  projectId: "redroseadmin",
+  storageBucket: "redroseadmin.firebasestorage.app",
+  messagingSenderId: "984186362373",
+  appId: "1:984186362373:web:5e1e60aead3b468d875a6c",
+  measurementId: "G-4HVGTVR3DB"
+};
 
-  const user = tg.initDataUnsafe.user;
-  const userId = user?.id?.toString() || 'unknown';
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-  // Firebase
-  const firebaseConfig = { /* তোমার কনফিগ */ };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
 
-  const countries = { /* তোমার আগের কনফিগ */ };
+const user = tg.initDataUnsafe.user;
+const userId = user?.id.toString() || 'unknown';
+const userRef = db.collection('users').doc(userId);
+const deviceId = tg.initDataUnsafe.device_id || 'no_device_id';
+let isNewUser = false;
+let referrerUsername = null;
+let referrerId = null;
+let isDuplicateDevice = false;
 
-  let selectedCountry = 'bd';
-  let balance = 270; // প্রথমে লোকাল, পরে Firestore থেকে
+// গ্লোবাল নেভিগেশন ফাংশন (CSS অপরিবর্তিত রাখতে)
+function goToHome() { window.location.href = 'index.html'; }
+function goToSupport() { window.location.href = 'support.html'; }
+function goToTasks() { window.location.href = 'tasks.html'; }
+function goToWithdraw() { window.location.href = 'withdraw.html'; }
 
-  // ব্যালেন্স লোড
-  function loadUserBalance() {
-    db.collection('users').doc(userId).get().then(doc => {
-      if (doc.exists) {
-        balance = doc.data().balance || 270;
-      } else {
-        db.collection('users').doc(userId).set({
-          name: user.first_name,
-          photoURL: user.photo_url,
-          balance: 270,
-          deviceId: tg.initDataUnsafe?.device_id || 'unknown',
-          registeredAt: firebase.firestore.FieldValue.serverTimestamp(),
-          referCode: userId,
-          referCount: 0,
-          banned: false
-        });
+// রিয়েল-টাইম ব্যালেন্স আপডেট ও ব্যান চেক
+function setupRealtimeUpdates() {
+  userRef.onSnapshot(async doc => {
+    if (doc.exists) {
+      const data = doc.data();
+      document.getElementById('balance').textContent = data.balance || 0;
+      document.getElementById('refer-count').textContent = data.referCount || 0;
+      document.getElementById('ads-watched').textContent = `${data.adsWatchedToday || 0} / 10`;
+      
+      // ব্যান/সাসপেন্ড চেক
+      const isBanned = data.isBanned || false;
+      const bannedUntil = data.bannedUntil?.toDate();
+      const isSuspended = bannedUntil && bannedUntil > new Date();
+      
+      if (isBanned || isSuspended) {
+        showBanPopup(isBanned, bannedUntil);
+        return;
       }
-      updateBalance();
-    });
-  }
+      
+      // যদি নতুন ইউজার হয় এবং রেফারেল পপ-আপ দেখানো বাকি থাকে
+      if (isNewUser && referrerId && !data.referralBonusClaimed) {
+        // রেফারের নাম লোড
+        if (referrerUsername) {
+          showReferralPopup(referrerUsername);
+        } else {
+          try {
+            const referrerDoc = await db.collection('users').doc(referrerId).get();
+            referrerUsername = referrerDoc.data()?.username || referrerId;
+            showReferralPopup(referrerUsername);
+          } catch (e) {
+            console.error("Referrer not found", e);
+            // রেফারের পপ-আপ না দেখিয়ে স্বাভাবিকভাবে অ্যাপ চালু
+          }
+        }
+      } else if (isDuplicateDevice) {
+        // ডিভাইস ডিটেক্ট পপ-আপ
+        showDeviceDetectPopup();
+      }
 
-  function updateBalance() {
-    document.getElementById('balance').textContent = balance;
-    document.getElementById('withdrawable-balance').textContent = balance + ' টাকা';
-  }
-
-  // উইথড্র রিকোয়েস্ট
-  document.getElementById('withdraw-btn').onclick = () => {
-    const phone = document.getElementById('phone-number').value.trim();
-    const amount = parseInt(document.getElementById('amount').value);
-    const method = document.querySelector('.method-btn.active').dataset.method;
-    const status = document.getElementById('status-message');
-
-    if (!phone || !amount || amount < 100 || amount > balance) {
-      status.textContent = 'ভুল তথ্য!';
-      status.style.color = '#ff4444';
-      return;
+    } else if (!isNewUser) {
+        // যদি ডকুমেন্ট না থাকে এবং নতুন রেজিস্ট্রেশন প্রক্রিয়া না চলছে, তবে ধরে নেওয়া হচ্ছে এইমাত্র অ্যাপ চালু হয়েছে।
+        // কোনো অ্যাকশন দরকার নেই, রেজিস্ট্রেশন নিচের কোডে হবে।
     }
+  });
+}
 
-    const config = countries[selectedCountry];
-    if (phone.length !== config.maxLength) {
-      status.textContent = `নাম্বার হতে হবে ${config.maxLength} ডিজিট!`;
-      status.style.color = '#ff4444';
-      return;
+// পপ-আপের HTML স্ট্রাকচার (CSS অপরিবর্তিত রাখতে JS-এ তৈরি)
+function getPopupHTML(title, message, buttonText = null, buttonAction = null) {
+  return `
+    <div id="dynamic-popup-overlay" class="popup-overlay" style="
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+        background: rgba(0, 0, 0, 0.9); z-index: 9999; display: flex; 
+        justify-content: center; align-items: center; backdrop-filter: blur(8px);">
+      <div class="popup-card" style="
+        background: var(--card-bg); padding: 30px; border-radius: 20px; 
+        width: 90%; max-width: 350px; text-align: center; border: 2px solid var(--neon);
+        box-shadow: 0 0 40px rgba(0, 170, 255, 0.7);">
+        <h2 style="color: var(--success); margin-bottom: 15px; font-size: 20px;">${title}</h2>
+        <p style="color: var(--text); font-size: 16px; line-height: 1.6;">${message}</p>
+        ${buttonText ? `<button id="popup-btn" class="btn-primary" style="margin-top: 25px; width: 100%;">${buttonText}</button>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+// রেফারেল পপ-আপ
+function showReferralPopup(referrerName) {
+  const message = `You Successfully invited by<br><strong>${referrerName}</strong> for gift you.`;
+  const popupHTML = getPopupHTML('Congratulations!', message, 'Open (Open and Get 10৳)');
+  document.body.insertAdjacentHTML('beforeend', popupHTML);
+
+  document.getElementById('popup-btn').onclick = async () => {
+    try {
+      // বোনাস দিন (নতুন ইউজার ১০ টাকা, রেফারার ৪০ টাকা)
+      await userRef.update({
+        balance: firebase.firestore.FieldValue.increment(10), // নতুন ইউজার ১০ টাকা
+        referralBonusClaimed: true // নিশ্চিত করার জন্য যে বোনাস নেওয়া হয়েছে
+      });
+      await db.collection('users').doc(referrerId).update({
+        balance: firebase.firestore.FieldValue.increment(40), // রেফারার ৪০ টাকা
+        referCount: firebase.firestore.FieldValue.increment(1)
+      });
+      
+      document.getElementById('dynamic-popup-overlay').remove();
+      tg.showAlert(`কংগ্রাচুলেশন! আপনি ${referrerName} এর মাধ্যমে যুক্ত হয়ে ১০ টাকা বোনাস পেয়েছেন!`);
+    } catch (e) {
+      document.getElementById('dynamic-popup-overlay').remove();
+      tg.showAlert("বোনাস দিতে সমস্যা হয়েছে।");
     }
-
-    const transactionId = generateTransactionId();
-    const now = new Date();
-
-    // Firestore-এ সেভ
-    db.collection('withdraws').add({
-      userId,
-      userName: user.first_name,
-      amount,
-      method,
-      phone: config.code + phone,
-      country: selectedCountry,
-      transactionId,
-      status: 'pending',
-      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-      requestTime: now.toLocaleString('bn-BD')
-    }).then(() => {
-      // ব্যালেন্স কাটা (পেন্ডিং)
-      balance -= amount;
-      db.collection('users').doc(userId).update({ balance });
-      updateBalance();
-
-      status.innerHTML = `রিকোয়েস্ট পাঠানো হয়েছে!<br>ট্রানজেকশন: <strong>${transactionId}</strong>`;
-      status.style.color = '#00ff88';
-
-      document.getElementById('phone-number').value = '';
-      document.getElementById('amount').value = '';
-    });
   };
-
-  // বাকি সব (কান্ট্রি, মেথড, হিস্টরি) — তোমার আগের মতো
-  // ... (তোমার পুরো কোড এখানে থাকবে)
-
-  
-  
-
-    
-
-    // নাম + ছবি
-    document.getElementById('user-name').textContent = user?.first_name || 'অজানা';
-    const avatar = document.getElementById('user-avatar');
-    if (user?.photo_url) {
-      avatar.src = user.photo_url + '?size=big';
-    } else {
-      const initial = (user?.first_name?.[0] || 'U').toUpperCase();
-      avatar.src = `https://ui-avatars.com/api/?name=${initial}&background=00aaff&color=fff&size=128&bold=true`;
-    }
-
-    // রেফার লিংক
-    const botUsername = 'Red_Chili_bot';
-    const referralId = user?.id || 'unknown';
-    const referralLink = `https://t.me/${botUsername}?startapp=${referralId}`;
-    document.getElementById('referral-link').textContent = referralLink;
-
-    // কপি + শেয়ার
-    document.getElementById('copy-btn').onclick = () => {
-      navigator.clipboard.writeText(referralLink).then(() => tg.showAlert('কপি হয়েছে!'));
-    };
-    document.getElementById('share-btn').onclick = () => {
-      tg.shareUrl(referralLink, 'আমার সাথে যোগ দিন!');
-    };
-
-    // ফাংশন
-    function stayHere() {
-      // কিছু না — হোমে থাকবে
-    }
-
-    function goToSupport() {
-      window.location.href = 'support.html';
-    }
-  
-    function goToTasks() {
-      window.location.href = 'tasks.html';
-}
-  
-  function goToWithdraw() {
-      window.location.href = 'withdraw.html';
 }
 
-    // ব্যাক বাটন → অ্যাপ বন্ধ (হোমে)
-    tg.BackButton.show();
-    tg.onEvent('backButtonClicked', () => {
-      let count = localStorage.getItem('backCount') || 0;
-      count++;
-      localStorage.setItem('backCount', count);
+// ডিভাইস ডিটেক্ট পপ-আপ
+function showDeviceDetectPopup() {
+  const message = `আপনার ফোন ডিটেক্ট হয়েছে। একই ডিভাইস থেকে একাধিক একাউন্ট খোলার কারণে আপনি রেফার বোনাস পাবেন না।`;
+  const popupHTML = getPopupHTML('Warning!', message, 'Close', 'closeApp()');
+  document.body.insertAdjacentHTML('beforeend', popupHTML);
+  document.getElementById('popup-btn').onclick = () => {
+      document.getElementById('dynamic-popup-overlay').remove();
+  };
+}
 
-      if (count === 1) {
-        tg.showAlert('আরেকবার ব্যাক করুন → অ্যাপ বন্ধ');
-        setTimeout(() => localStorage.setItem('backCount', 0), 2000);
-      } else {
-        tg.close();
+
+// ব্যান পপ-আপ
+function showBanPopup(isBanned, bannedUntil) {
+  let message = '';
+  let title = '⛔️ একাউন্ট ব্যানড!';
+  if (isBanned) {
+    message = 'আপনার একাউন্ট স্থায়ীভাবে ব্যান করা হয়েছে। অনুগ্রহ করে সাপোর্টে যোগাযোগ করুন।';
+  } else if (bannedUntil) {
+    title = '⏸ একাউন্ট সাসপেন্ডড!';
+    const dateStr = bannedUntil.toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    message = `আপনার একাউন্টটি সাময়িকভাবে সাসপেন্ড করা হয়েছে। সাসপেনশন শেষ হবে: <strong>${dateStr}</strong>।`;
+  }
+  
+  const popupHTML = getPopupHTML(title, message, 'Close App');
+  document.body.insertAdjacentHTML('beforeend', popupHTML);
+  
+  // মেন ব্যালেন্স ফ্রিজ দেখানো
+  document.getElementById('balance').textContent = 'FREEZED'; 
+  
+  // ব্যাক বাটন ও অন্যান্য ফাংশন বন্ধ
+  tg.BackButton.hide();
+  document.getElementById('popup-btn').onclick = () => tg.close();
+}
+
+
+// প্রথম লোড: ইউজার রেজিস্ট্রেশন ও রেফারেল চেক
+userRef.get().then(async doc => {
+  const data = doc.data();
+
+  // ডিভাইস ডিটেক্ট চেক
+  if (deviceId !== 'no_device_id') {
+      const deviceQuery = await db.collection('users').where('deviceId', '==', deviceId).get();
+      if (deviceQuery.docs.length > 0 && !deviceQuery.docs.every(d => d.id === userId)) {
+          isDuplicateDevice = true;
       }
-    });
+  }
+
+  if (!doc.exists) {
+    isNewUser = true;
+    const startParam = tg.initDataUnsafe.start_param;
+    if (startParam && startParam.startsWith('invite_')) {
+      referrerId = startParam.split('invite_')[1];
+    }
+    
+    // নতুন ইউজার ডাটা (শুরুতে ০ ব্যালেন্স)
+    const userData = {
+      name: user?.first_name || 'N/A',
+      username: user?.username || 'N/A',
+      deviceId: deviceId, 
+      balance: 0,
+      referCount: 0,
+      referrerId: referrerId || null,
+      referralBonusClaimed: isDuplicateDevice ? true : (referrerId ? false : true), // যদি ডিভাইস ডিটেক্ট হয় বা রেফারেল না থাকে তবে বোনাস ক্লেমড হিসেবে চিহ্নিত
+      isBanned: false,
+      bannedUntil: null,
+      registeredAt: firebase.firestore.FieldValue.serverTimestamp(),
+      lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    
+    // সেভ
+    userRef.set(userData).then(setupRealtimeUpdates).catch(e => console.error(e));
+
+  } else {
+    // পুরনো ইউজার
+    userRef.update({ lastSeen: firebase.firestore.FieldValue.serverTimestamp() });
+    setupRealtimeUpdates();
+  }
+});
+
+
+// নাম + ছবি লোড
+document.getElementById('user-name').textContent = user?.first_name || 'অজানা';
+const avatar = document.getElementById('user-avatar');
+if (user?.photo_url) {
+  avatar.src = user.photo_url + '?size=big';
+} else {
+  const initial = (user?.first_name?.[0] || 'U').toUpperCase();
+  avatar.src = `https://ui-avatars.com/api/?name=${initial}&background=00aaff&color=fff&size=128&bold=true`;
+}
+
+
+// ব্যাক বাটন
+tg.BackButton.show();
+tg.onEvent('backButtonClicked', () => {
+  let count = localStorage.getItem('backCount') || 0;
+  count++;
+  localStorage.setItem('backCount', count);
+
+  if (count === 1) {
+    tg.showAlert('আরেকবার ব্যাক করুন, অ্যাপ বন্ধ হবে।');
+  } else if (count === 2) {
+    tg.close();
+  }
+  setTimeout(() => localStorage.removeItem('backCount'), 3000);
+});
+
+// রেফারেল লিংক কপি
+document.getElementById('copy-referral-btn').onclick = () => {
+  const link = `https://t.me/${tg.initDataUnsafe.chat_type === 'sender' ? tg.initDataUnsafe.chat_id : 'YOUR_BOT_USERNAME'}?startattach=invite_${userId}`;
+  navigator.clipboard.writeText(link).then(() => {
+    document.getElementById('referral-link').textContent = link;
+    tg.showAlert('রেফারেল লিঙ্ক কপি হয়েছে!');
+  }).catch(err => {
+    tg.showAlert('কপি করতে সমস্যা হয়েছে: ' + err);
+  });
+};
+
   </script>
 </body>
 </html>
