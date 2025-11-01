@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="bn">
 <head>
@@ -5,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Withdraw - Meshchain.Ai</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -18,19 +21,19 @@
           <p id="user-name" class="username">লোড হচ্ছে...</p>
           <div class="verified-badge">Verified</div>
         </div>
-        <p class="balance">ব্যালেন্স: <span id="balance">00</span> টাকা</p>
+        <p class="balance">Balance: <span id="balance">0</span>৳</p>
       </div>
     </div>
   </header>
 
   <!-- Withdraw Content -->
   <main class="main-content">
-    <h1>উইথড্র</h1>
+    <h1>Withdraw</h1>
 
     <!-- Balance Card -->
     <div class="balance-card">
       <p>উইথড্রযোগ্য ব্যালেন্স</p>
-      <h2 id="withdrawable-balance">০ টাকা</h2>
+      <h2 id="withdrawable-balance">0৳</h2>
     </div>
 
     <!-- Country Selector -->
@@ -78,189 +81,254 @@
 
   <!-- JavaScript -->
   <script>
-    const tg = window.Telegram.WebApp;
-    tg.ready();
-    tg.expand();
+     
+    // withdraw.html-এর জন্য সম্পূর্ণ নতুন JavaScript
+  const firebaseConfig = {
+  apiKey: "AIzaSyCmlgT1e5tWCWQ6yKSO6Z3vd8EJqdgso8A",
+  authDomain: "redroseadmin.firebaseapp.com",
+  projectId: "redroseadmin",
+  storageBucket: "redroseadmin.firebasestorage.app",
+  messagingSenderId: "984186362373",
+  appId: "1:984186362373:web:5e1e60aead3b468d875a6c",
+  measurementId: "G-4HVGTVR3DB"
+};
 
-    const user = tg.initDataUnsafe.user;
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-    // কান্ট্রি কনফিগ
-    const countries = {
-      bd: { code: '+880', maxLength: 10, methods: ['bkash', 'nagad', 'rocket'], methodNames: { bkash: 'বিকাশ', nagad: 'নগদ', rocket: 'রকেট' } },
-      pk: { code: '+92', maxLength: 10, methods: ['jazzcash', 'easypaisa', 'ubl'], methodNames: { jazzcash: 'JazzCash', easypaisa: 'Easypaisa', ubl: 'UBL Omni' } },
-      in: { code: '+91', maxLength: 10, methods: ['phonepe', 'paytm', 'gpay'], methodNames: { phonepe: 'PhonePe', paytm: 'Paytm', gpay: 'Google Pay' } }
-    };
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
 
-    let selectedCountry = 'bd';
-    let balance = parseInt(localStorage.getItem('userBalance') || '270');
+const user = tg.initDataUnsafe.user;
+const userId = user?.id.toString() || 'unknown';
+const userRef = db.collection('users').doc(userId);
+let userData = {};
+
+// গ্লোবাল নেভিগেশন ফাংশন (CSS অপরিবর্তিত রাখতে)
+function goToHome() { window.location.href = 'index.html'; }
+function goToSupport() { window.location.href = 'support.html'; }
+function goToTasks() { window.location.href = 'tasks.html'; }
+function goToWithdraw() { window.location.href = 'withdraw.html'; }
+
+const countries = {
+  bd: { code: '+880', maxLength: 10, methods: ['bKash', 'Nagad'], methodNames: { bKash: 'বিকাশ', Nagad: 'নগদ' } },
+  pk: { code: '+92', maxLength: 10, methods: ['JazzCash'], methodNames: { JazzCash: 'JazzCash' } },
+  in: { code: '+91', maxLength: 10, methods: ['Paytm'], methodNames: { Paytm: 'Paytm' } }
+};
+let selectedCountry = 'bd';
+let selectedMethod = 'bKash';
+
+
+// ব্যান পপ-আপ (index.html থেকে কপি করা)
+function showBanPopup(isBanned, bannedUntil) {
+  let message = '';
+  let title = '⛔️ একাউন্ট ব্যানড!';
+  if (isBanned) {
+    message = 'আপনার একাউন্ট স্থায়ীভাবে ব্যান করা হয়েছে। অনুগ্রহ করে সাপোর্টে যোগাযোগ করুন।';
+  } else if (bannedUntil) {
+    title = '⏸ একাউন্ট সাসপেন্ডড!';
+    const dateStr = bannedUntil.toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    message = `আপনার একাউন্টটি সাময়িকভাবে সাসপেন্ড করা হয়েছে। সাসপেনশন শেষ হবে: <strong>${dateStr}</strong>।`;
+  }
   
+  // পপ-আপের HTML স্ট্রাকচার
+  const popupHTML = `
+    <div id="dynamic-popup-overlay" class="popup-overlay" style="
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+        background: rgba(0, 0, 0, 0.9); z-index: 9999; display: flex; 
+        justify-content: center; align-items: center; backdrop-filter: blur(8px);">
+      <div class="popup-card" style="
+        background: var(--card-bg); padding: 30px; border-radius: 20px; 
+        width: 90%; max-width: 350px; text-align: center; border: 2px solid var(--neon);
+        box-shadow: 0 0 40px rgba(0, 170, 255, 0.7);">
+        <h2 style="color: #ff4444; margin-bottom: 15px; font-size: 20px;">${title}</h2>
+        <p style="color: var(--text); font-size: 16px; line-height: 1.6;">${message}</p>
+        <button id="popup-btn" class="btn-primary" style="margin-top: 25px; width: 100%; background: #ff4444;">Close App</button>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', popupHTML);
+  document.getElementById('balance').textContent = 'FREEZED'; 
+  document.getElementById('withdrawable-balance').textContent = 'FREEZED'; 
+  tg.BackButton.hide();
+  document.getElementById('popup-btn').onclick = () => tg.close();
+}
+
+
+// রিয়েলটাইম আপডেট ও ব্যান চেক
+userRef.onSnapshot(doc => {
+  if (doc.exists) {
+    userData = doc.data();
+    const balance = userData.balance || 0;
+    document.getElementById('balance').textContent = balance;
+    document.getElementById('withdrawable-balance').textContent = `${balance}৳`;
+    
+    // ব্যান/সাসপেন্ড চেক
+    const isBanned = userData.isBanned || false;
+    const bannedUntil = userData.bannedUntil?.toDate();
+    const isSuspended = bannedUntil && bannedUntil > new Date();
+    
+    if (isBanned || isSuspended) {
+      showBanPopup(isBanned, bannedUntil);
+      return;
+    }
+  }
+});
+
+
+// উইথড্র হিস্টরি লোড
+function loadHistory() {
+  db.collection('withdraws').where('userId', '==', userId).orderBy('timestamp', 'desc').onSnapshot(snapshot => {
+    const list = document.getElementById('history-list');
+    list.innerHTML = '';
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const statusColor = data.status === 'paid' ? '#00ff88' : (data.status === 'pending' ? '#ffaa00' : '#ff4444');
+      const timeStr = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleTimeString('bn-BD') : '';
+      
+      const item = document.createElement('div');
+      item.className = 'history-item';
+      item.innerHTML = `
+        <div class="item-details">
+          <p class="item-title">${data.method} - ${data.phone}</p>
+          <p class="item-id">Req ID: ${data.transactionId}</p>
+          <p class="item-time">${timeStr}</p>
+        </div>
+        <div class="item-status" style="color:${statusColor};">
+          ${data.amount}৳ (${data.status.toUpperCase()})
+        </div>
+      `;
+      list.appendChild(item);
+    });
+  });
+}
+
+
+// মেথড লোড
+function loadMethods(config) {
+  const group = document.getElementById('method-group');
+  group.innerHTML = '';
+  selectedMethod = config.methods[0]; // ডিফল্ট মেথড সেট
+
+  config.methods.forEach(method => {
+    const btn = document.createElement('button');
+    btn.className = 'method-btn';
+    btn.dataset.method = method;
+    btn.textContent = config.methodNames[method];
+    if (method === config.methods[0]) btn.classList.add('active');
+    
+    btn.onclick = () => {
+      group.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedMethod = method;
+    };
+    group.appendChild(btn);
+  });
+}
+
+
+// কান্ট্রি চেঞ্জ
+document.getElementById('country-select').onchange = (e) => {
+  selectedCountry = e.target.value;
+  const config = countries[selectedCountry];
+  document.getElementById('country-code').textContent = config.code;
+  document.getElementById('phone-number').value = '';
+  document.getElementById('phone-number').maxLength = config.maxLength;
+  loadMethods(config);
+};
+
+// ট্রানজেকশন আইডি জেনারেট
+function generateTransactionId() {
+  return 'TXN' + Date.now().toString().slice(-6) + Math.random().toString(36).substring(2, 5).toUpperCase();
+}
+
+
+// উইথড্র রিকোয়েস্ট
+document.getElementById('withdraw-btn').onclick = () => {
+  const status = document.getElementById('status-message');
+  const phone = document.getElementById('phone-number').value.trim();
+  const amount = parseInt(document.getElementById('amount').value);
   
+  if (userData.isBanned || (userData.bannedUntil && userData.bannedUntil.toDate() > new Date())) {
+    status.textContent = 'আপনার একাউন্ট ফ্রিজ করা আছে। উইথড্র সম্ভব নয়।';
+    status.style.color = '#ff4444';
+    return;
+  }
+  
+  if (isNaN(amount) || amount < 100) {
+    status.textContent = 'উইথড্র পরিমাণ মিনিমাম ১০০ টাকা হতে হবে!';
+    status.style.color = '#ff4444';
+    return;
+  }
 
-    // UI আপডেট
-    function updateBalance() {
-      document.getElementById('balance').textContent = balance;
-      document.getElementById('withdrawable-balance').textContent = balance + ' টাকা';
-      localStorage.setItem('userBalance', balance);
+  const config = countries[selectedCountry];
+  if (phone.length !== config.maxLength) {
+    status.textContent = `নাম্বার হতে হবে ${config.maxLength} ডিজিট!`;
+    status.style.color = '#ff4444';
+    return;
+  }
+
+  userRef.get().then(doc => {
+    const balance = doc.data().balance || 0;
+    if (amount > balance) {
+      status.textContent = 'অপর্যাপ্ত ব্যালেন্স!';
+      status.style.color = '#ff4444';
+      return;
     }
 
-    // কান্ট্রি চেঞ্জ
-    document.getElementById('country-select').onchange = (e) => {
-      selectedCountry = e.target.value;
-      const config = countries[selectedCountry];
-      document.getElementById('country-code').textContent = config.code;
-      document.getElementById('phone-number').maxLength = config.maxLength;
-      document.getElementById('phone-number').value = '';
-      loadMethods(config);
-    };
+    const transactionId = generateTransactionId();
 
-    // মেথড লোড
-    function loadMethods(config) {
-      const group = document.getElementById('method-group');
-      group.innerHTML = '';
-      config.methods.forEach(method => {
-        const btn = document.createElement('button');
-        btn.className = 'method-btn';
-        btn.dataset.method = method;
-        btn.textContent = config.methodNames[method];
-        if (method === config.methods[0]) btn.classList.add('active');
-        btn.onclick = () => {
-          group.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-        };
-        group.appendChild(btn);
-      });
-    }
+    db.collection('withdraws').add({
+      userId: userId,
+      transactionId,
+      amount,
+      method: selectedMethod,
+      phone: config.code + phone,
+      country: selectedCountry,
+      status: 'pending',
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      actionTime: null
+    });
 
-    // প্রথম লোড
-    document.getElementById('user-name').textContent = user?.first_name || 'অজানা';
-    updateBalance();
+    // ব্যালেন্স ডেবিট রিয়েল-টাইমে আপডেট হবে userRef.onSnapshot এর মাধ্যমে।
+    userRef.update({
+      balance: firebase.firestore.FieldValue.increment(-amount)
+    });
 
-    const avatar = document.getElementById('user-avatar');
-    if (user?.photo_url) {
-      avatar.src = user.photo_url + '?size=big';
-    } else {
-      const initial = (user?.first_name?.[0] || 'U').toUpperCase();
-      avatar.src = `https://ui-avatars.com/api/?name=${initial}&background=00aaff&color=fff&size=128&bold=true`;
-    }
+    status.innerHTML = `রিকোয়েস্ট পাঠানো হয়েছে!<br>ট্রানজেকশন: <strong>${transactionId}</strong>`;
+    status.style.color = '#00ff88';
 
-    // নেভিগেশন
-    function goToHome() { window.location.href = 'index.html'; }
-    function goToSupport() { window.location.href = 'support.html'; }
-    function goToTasks() { window.location.href = 'tasks.html'; }
+    document.getElementById('phone-number').value = '';
+    document.getElementById('amount').value = '';
+  });
+};
 
-    // ট্রানজেকশন আইডি
-    function generateTransactionId() {
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      let id = '';
-      for (let i = 0; i < 12; i++) {
-        id += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      return id;
-    }
 
-    // হিস্টরি সেভ
-    function saveRequest(data) {
-      let history = JSON.parse(localStorage.getItem('withdrawHistory') || '[]');
-      history.unshift(data);
-      localStorage.setItem('withdrawHistory', JSON.stringify(history));
-    }
+// প্রথম লোড
+loadMethods(countries[selectedCountry]);
+loadHistory();
 
-    // হিস্টরি লোড
-    function loadHistory() {
-      const list = document.getElementById('history-list');
-      list.innerHTML = '';
-      const history = JSON.parse(localStorage.getItem('withdrawHistory') || '[]');
 
-      if (history.length === 0) {
-        list.innerHTML = '<p class="no-history">কোনো রিকোয়েস্ট নেই</p>';
-        return;
-      }
+// নাম + ছবি
+document.getElementById('user-name').textContent = user?.first_name || 'অজানা';
+const avatar = document.getElementById('user-avatar');
+if (user?.photo_url) {
+  avatar.src = user.photo_url + '?size=big';
+} else {
+  const initial = (user?.first_name?.[0] || 'U').toUpperCase();
+  avatar.src = `https://ui-avatars.com/api/?name=${initial}&background=00aaff&color=fff&size=128&bold=true`;
+}
 
-      history.forEach(item => {
-        const methodName = countries[item.country].methodNames[item.method];
-        const statusText = item.status === 'approved' ? 'Paid' : item.status === 'rejected' ? 'Failed' : 'Pending';
-        const statusColor = item.status === 'approved' ? '#00ff88' : item.status === 'rejected' ? '#ff4444' : '#88cfff';
-        const actionTime = item.actionTime ? `<br><small>(${item.actionTime})</small>` : '';
 
-        const el = document.createElement('div');
-        el.className = 'history-item';
-        el.innerHTML = `
-          <div class="history-details">
-            <p><strong>${item.amount} টাকা</strong> → ${methodName}</p>
-            <p>নাম্বার: ${item.phone}</p>
-            <p>ট্রানজেকশন: <strong>${item.transactionId}</strong></p>
-            <p><small>${item.requestTime}</small>${actionTime}</p>
-          </div>
-          <div class="history-status" style="color:${statusColor}">${statusText}</div>
-        `;
-        list.appendChild(el);
-      });
-    }
+// ব্যাক বাটন
+tg.BackButton.show();
+tg.onEvent('backButtonClicked', () => {
+  window.location.href = 'index.html';
+});
 
-    // উইথড্র বাটন
-    document.getElementById('withdraw-btn').onclick = () => {
-      const phone = document.getElementById('phone-number').value.trim();
-      const amount = parseInt(document.getElementById('amount').value);
-      const method = document.querySelector('.method-btn.active').dataset.method;
-      const status = document.getElementById('status-message');
-
-      if (!phone || !amount) {
-        status.textContent = 'সব তথ্য পূরণ করুন!';
-        status.style.color = '#ff4444';
-        return;
-      }
-      if (amount < 100) {
-        status.textContent = 'মিনিমাম ১০০ টাকা!';
-        status.style.color = '#ff4444';
-        return;
-      }
-      if (amount > balance) {
-        status.textContent = 'অপর্যাপ্ত ব্যালেন্স!';
-        status.style.color = '#ff4444';
-        return;
-      }
-
-      const config = countries[selectedCountry];
-      if (phone.length !== config.maxLength) {
-        status.textContent = `নাম্বার হতে হবে ${config.maxLength} ডিজিট!`;
-        status.style.color = '#ff4444';
-        return;
-      }
-
-      const transactionId = generateTransactionId();
-      const now = new Date();
-      const requestTime = now.toLocaleString('bn-BD');
-
-      saveRequest({
-        transactionId,
-        amount,
-        method,
-        phone: config.code + phone,
-        country: selectedCountry,
-        status: 'pending',
-        requestTime,
-        actionTime: null
-      });
-
-      balance -= amount;
-      updateBalance();
-
-      status.innerHTML = `রিকোয়েস্ট পাঠানো হয়েছে!<br>ট্রানজেকশন: <strong>${transactionId}</strong>`;
-      status.style.color = '#00ff88';
-
-      document.getElementById('phone-number').value = '';
-      document.getElementById('amount').value = '';
-
-      loadHistory();
-    };
-
-    // প্রথম লোড
-    loadMethods(countries[selectedCountry]);
-    loadHistory();
-
-    // ব্যাক বাটন
-    tg.BackButton.show();
-    tg.onEvent('backButtonClicked', goToHome);
+      
+      
   </script>
 </body>
 </html>
