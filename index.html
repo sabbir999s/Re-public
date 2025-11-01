@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Meshchain.Ai</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="profile">
+      <img id="user-avatar" src="" alt="Avatar" class="avatar" />
+      <div class="user-info">
+        <div class="name-row">
+          <p id="user-name" class="username">লোড হচ্ছে...</p>
+          <div class="verified-badge">Verified</div>
+        </div>
+        <p class="balance">ব্যালেন্স: 00 টাকা</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <h1>Dashboard</h1>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <p class="stat-label">Daily Ads Watched</p>
+        <h2 class="stat-value">0 / 10</h2>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">Total Referrals</p>
+        <h2 class="stat-value">0</h2>
+      </div>
+    </div>
+
+    <div class="referral-card">
+      <h2>Refer & Earn More!</h2>
+      <p class="referral-text">
+        রেফার লিংকটি কপি করে আপনার বন্ধুদের শেয়ার করুন। প্রতি রেফারে <strong>৪০ টাকা</strong> পাবেন।
+      </p>
+      <div class="referral-link-box" id="referral-link">লোড হচ্ছে...</div>
+      <div class="btn-group">
+        <button id="copy-btn" class="btn-primary">Copy Link</button>
+        <button id="share-btn" class="btn-success">Share Now</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Bottom Navigation -->
+<nav class="bottom-nav">
+  <button class="nav-item active">Home</button>
+  <button class="nav-item" onclick="goToSupport()">Support</button>
+  <button class="nav-item" onclick="goToTasks()">Tasks</button>
+  <button class="nav-item"onclick="goToWithdraw()">Withdraw</button>
+</nav>
+
+  <!-- JavaScript -->
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+  
+  
+
+  const user = tg.initDataUnsafe.user;
+  const userId = user?.id?.toString() || 'unknown';
+
+  // Firebase
+  const firebaseConfig = { /* তোমার কনফিগ */ };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  const countries = { /* তোমার আগের কনফিগ */ };
+
+  let selectedCountry = 'bd';
+  let balance = 270; // প্রথমে লোকাল, পরে Firestore থেকে
+
+  // ব্যালেন্স লোড
+  function loadUserBalance() {
+    db.collection('users').doc(userId).get().then(doc => {
+      if (doc.exists) {
+        balance = doc.data().balance || 270;
+      } else {
+        db.collection('users').doc(userId).set({
+          name: user.first_name,
+          photoURL: user.photo_url,
+          balance: 270,
+          deviceId: tg.initDataUnsafe?.device_id || 'unknown',
+          registeredAt: firebase.firestore.FieldValue.serverTimestamp(),
+          referCode: userId,
+          referCount: 0,
+          banned: false
+        });
+      }
+      updateBalance();
+    });
+  }
+
+  function updateBalance() {
+    document.getElementById('balance').textContent = balance;
+    document.getElementById('withdrawable-balance').textContent = balance + ' টাকা';
+  }
+
+  // উইথড্র রিকোয়েস্ট
+  document.getElementById('withdraw-btn').onclick = () => {
+    const phone = document.getElementById('phone-number').value.trim();
+    const amount = parseInt(document.getElementById('amount').value);
+    const method = document.querySelector('.method-btn.active').dataset.method;
+    const status = document.getElementById('status-message');
+
+    if (!phone || !amount || amount < 100 || amount > balance) {
+      status.textContent = 'ভুল তথ্য!';
+      status.style.color = '#ff4444';
+      return;
+    }
+
+    const config = countries[selectedCountry];
+    if (phone.length !== config.maxLength) {
+      status.textContent = `নাম্বার হতে হবে ${config.maxLength} ডিজিট!`;
+      status.style.color = '#ff4444';
+      return;
+    }
+
+    const transactionId = generateTransactionId();
+    const now = new Date();
+
+    // Firestore-এ সেভ
+    db.collection('withdraws').add({
+      userId,
+      userName: user.first_name,
+      amount,
+      method,
+      phone: config.code + phone,
+      country: selectedCountry,
+      transactionId,
+      status: 'pending',
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      requestTime: now.toLocaleString('bn-BD')
+    }).then(() => {
+      // ব্যালেন্স কাটা (পেন্ডিং)
+      balance -= amount;
+      db.collection('users').doc(userId).update({ balance });
+      updateBalance();
+
+      status.innerHTML = `রিকোয়েস্ট পাঠানো হয়েছে!<br>ট্রানজেকশন: <strong>${transactionId}</strong>`;
+      status.style.color = '#00ff88';
+
+      document.getElementById('phone-number').value = '';
+      document.getElementById('amount').value = '';
+    });
+  };
+
+  // বাকি সব (কান্ট্রি, মেথড, হিস্টরি) — তোমার আগের মতো
+  // ... (তোমার পুরো কোড এখানে থাকবে)
+
+  
+  
+
+    
+
+    // নাম + ছবি
+    document.getElementById('user-name').textContent = user?.first_name || 'অজানা';
+    const avatar = document.getElementById('user-avatar');
+    if (user?.photo_url) {
+      avatar.src = user.photo_url + '?size=big';
+    } else {
+      const initial = (user?.first_name?.[0] || 'U').toUpperCase();
+      avatar.src = `https://ui-avatars.com/api/?name=${initial}&background=00aaff&color=fff&size=128&bold=true`;
+    }
+
+    // রেফার লিংক
+    const botUsername = 'Red_Chili_bot';
+    const referralId = user?.id || 'unknown';
+    const referralLink = `https://t.me/${botUsername}?startapp=${referralId}`;
+    document.getElementById('referral-link').textContent = referralLink;
+
+    // কপি + শেয়ার
+    document.getElementById('copy-btn').onclick = () => {
+      navigator.clipboard.writeText(referralLink).then(() => tg.showAlert('কপি হয়েছে!'));
+    };
+    document.getElementById('share-btn').onclick = () => {
+      tg.shareUrl(referralLink, 'আমার সাথে যোগ দিন!');
+    };
+
+    // ফাংশন
+    function stayHere() {
+      // কিছু না — হোমে থাকবে
+    }
+
+    function goToSupport() {
+      window.location.href = 'support.html';
+    }
+  
+    function goToTasks() {
+      window.location.href = 'tasks.html';
+}
+  
+  function goToWithdraw() {
+      window.location.href = 'withdraw.html';
+}
+
+    // ব্যাক বাটন → অ্যাপ বন্ধ (হোমে)
+    tg.BackButton.show();
+    tg.onEvent('backButtonClicked', () => {
+      let count = localStorage.getItem('backCount') || 0;
+      count++;
+      localStorage.setItem('backCount', count);
+
+      if (count === 1) {
+        tg.showAlert('আরেকবার ব্যাক করুন → অ্যাপ বন্ধ');
+        setTimeout(() => localStorage.setItem('backCount', 0), 2000);
+      } else {
+        tg.close();
+      }
+    });
+  </script>
+</body>
+</html>

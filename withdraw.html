@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Withdraw - Meshchain.Ai</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="profile">
+      <img id="user-avatar" src="" alt="Avatar" class="avatar" />
+      <div class="user-info">
+        <div class="name-row">
+          <p id="user-name" class="username">লোড হচ্ছে...</p>
+          <div class="verified-badge">Verified</div>
+        </div>
+        <p class="balance">ব্যালেন্স: <span id="balance">00</span> টাকা</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Withdraw Content -->
+  <main class="main-content">
+    <h1>উইথড্র</h1>
+
+    <!-- Balance Card -->
+    <div class="balance-card">
+      <p>উইথড্রযোগ্য ব্যালেন্স</p>
+      <h2 id="withdrawable-balance">০ টাকা</h2>
+    </div>
+
+    <!-- Country Selector -->
+    <div class="country-selector">
+      <label>দেশ নির্বাচন করুন</label>
+      <select id="country-select" class="input-field">
+        <option value="bd">বাংলাদেশ (+880)</option>
+        <option value="pk">পাকিস্তান (+92)</option>
+        <option value="in">ভারত (+91)</option>
+      </select>
+    </div>
+
+    <!-- Withdraw Form -->
+    <div class="withdraw-card">
+      <h3>পেমেন্ট মেথড</h3>
+      <div class="method-group" id="method-group">
+        <!-- মেথডগুলো JS দিয়ে লোড হবে -->
+      </div>
+
+      <div class="phone-input-group">
+        <span id="country-code" class="country-code">+880</span>
+        <input type="text" id="phone-number" placeholder="মোবাইল নাম্বার" class="input-field phone-input" maxlength="10" />
+      </div>
+
+      <input type="number" id="amount" placeholder="উইথড্র পরিমাণ (মিনিমাম ১০০)" class="input-field" min="100" />
+
+      <button id="withdraw-btn" class="btn-primary">উইথড্র রিকোয়েস্ট করুন</button>
+      <p id="status-message" class="status-text"></p>
+    </div>
+
+    <!-- History Section -->
+    <div class="history-section">
+      <h3>উইথড্র হিস্টরি</h3>
+      <div id="history-list" class="history-list"></div>
+    </div>
+  </main>
+
+  <!-- তোমার নিজের নেভিগেশন -->
+  <nav class="bottom-nav">
+    <button class="nav-item" onclick="goToHome()">Home</button>
+    <button class="nav-item" onclick="goToSupport()">Support</button>
+    <button class="nav-item" onclick="goToTasks()">Tasks</button>
+    <button class="nav-item active">Withdraw</button>
+  </nav>
+
+  <!-- JavaScript -->
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+
+    const user = tg.initDataUnsafe.user;
+
+    // কান্ট্রি কনফিগ
+    const countries = {
+      bd: { code: '+880', maxLength: 10, methods: ['bkash', 'nagad', 'rocket'], methodNames: { bkash: 'বিকাশ', nagad: 'নগদ', rocket: 'রকেট' } },
+      pk: { code: '+92', maxLength: 10, methods: ['jazzcash', 'easypaisa', 'ubl'], methodNames: { jazzcash: 'JazzCash', easypaisa: 'Easypaisa', ubl: 'UBL Omni' } },
+      in: { code: '+91', maxLength: 10, methods: ['phonepe', 'paytm', 'gpay'], methodNames: { phonepe: 'PhonePe', paytm: 'Paytm', gpay: 'Google Pay' } }
+    };
+
+    let selectedCountry = 'bd';
+    let balance = parseInt(localStorage.getItem('userBalance') || '270');
+  
+  
+
+    // UI আপডেট
+    function updateBalance() {
+      document.getElementById('balance').textContent = balance;
+      document.getElementById('withdrawable-balance').textContent = balance + ' টাকা';
+      localStorage.setItem('userBalance', balance);
+    }
+
+    // কান্ট্রি চেঞ্জ
+    document.getElementById('country-select').onchange = (e) => {
+      selectedCountry = e.target.value;
+      const config = countries[selectedCountry];
+      document.getElementById('country-code').textContent = config.code;
+      document.getElementById('phone-number').maxLength = config.maxLength;
+      document.getElementById('phone-number').value = '';
+      loadMethods(config);
+    };
+
+    // মেথড লোড
+    function loadMethods(config) {
+      const group = document.getElementById('method-group');
+      group.innerHTML = '';
+      config.methods.forEach(method => {
+        const btn = document.createElement('button');
+        btn.className = 'method-btn';
+        btn.dataset.method = method;
+        btn.textContent = config.methodNames[method];
+        if (method === config.methods[0]) btn.classList.add('active');
+        btn.onclick = () => {
+          group.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+        };
+        group.appendChild(btn);
+      });
+    }
+
+    // প্রথম লোড
+    document.getElementById('user-name').textContent = user?.first_name || 'অজানা';
+    updateBalance();
+
+    const avatar = document.getElementById('user-avatar');
+    if (user?.photo_url) {
+      avatar.src = user.photo_url + '?size=big';
+    } else {
+      const initial = (user?.first_name?.[0] || 'U').toUpperCase();
+      avatar.src = `https://ui-avatars.com/api/?name=${initial}&background=00aaff&color=fff&size=128&bold=true`;
+    }
+
+    // নেভিগেশন
+    function goToHome() { window.location.href = 'index.html'; }
+    function goToSupport() { window.location.href = 'support.html'; }
+    function goToTasks() { window.location.href = 'tasks.html'; }
+
+    // ট্রানজেকশন আইডি
+    function generateTransactionId() {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let id = '';
+      for (let i = 0; i < 12; i++) {
+        id += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return id;
+    }
+
+    // হিস্টরি সেভ
+    function saveRequest(data) {
+      let history = JSON.parse(localStorage.getItem('withdrawHistory') || '[]');
+      history.unshift(data);
+      localStorage.setItem('withdrawHistory', JSON.stringify(history));
+    }
+
+    // হিস্টরি লোড
+    function loadHistory() {
+      const list = document.getElementById('history-list');
+      list.innerHTML = '';
+      const history = JSON.parse(localStorage.getItem('withdrawHistory') || '[]');
+
+      if (history.length === 0) {
+        list.innerHTML = '<p class="no-history">কোনো রিকোয়েস্ট নেই</p>';
+        return;
+      }
+
+      history.forEach(item => {
+        const methodName = countries[item.country].methodNames[item.method];
+        const statusText = item.status === 'approved' ? 'Paid' : item.status === 'rejected' ? 'Failed' : 'Pending';
+        const statusColor = item.status === 'approved' ? '#00ff88' : item.status === 'rejected' ? '#ff4444' : '#88cfff';
+        const actionTime = item.actionTime ? `<br><small>(${item.actionTime})</small>` : '';
+
+        const el = document.createElement('div');
+        el.className = 'history-item';
+        el.innerHTML = `
+          <div class="history-details">
+            <p><strong>${item.amount} টাকা</strong> → ${methodName}</p>
+            <p>নাম্বার: ${item.phone}</p>
+            <p>ট্রানজেকশন: <strong>${item.transactionId}</strong></p>
+            <p><small>${item.requestTime}</small>${actionTime}</p>
+          </div>
+          <div class="history-status" style="color:${statusColor}">${statusText}</div>
+        `;
+        list.appendChild(el);
+      });
+    }
+
+    // উইথড্র বাটন
+    document.getElementById('withdraw-btn').onclick = () => {
+      const phone = document.getElementById('phone-number').value.trim();
+      const amount = parseInt(document.getElementById('amount').value);
+      const method = document.querySelector('.method-btn.active').dataset.method;
+      const status = document.getElementById('status-message');
+
+      if (!phone || !amount) {
+        status.textContent = 'সব তথ্য পূরণ করুন!';
+        status.style.color = '#ff4444';
+        return;
+      }
+      if (amount < 100) {
+        status.textContent = 'মিনিমাম ১০০ টাকা!';
+        status.style.color = '#ff4444';
+        return;
+      }
+      if (amount > balance) {
+        status.textContent = 'অপর্যাপ্ত ব্যালেন্স!';
+        status.style.color = '#ff4444';
+        return;
+      }
+
+      const config = countries[selectedCountry];
+      if (phone.length !== config.maxLength) {
+        status.textContent = `নাম্বার হতে হবে ${config.maxLength} ডিজিট!`;
+        status.style.color = '#ff4444';
+        return;
+      }
+
+      const transactionId = generateTransactionId();
+      const now = new Date();
+      const requestTime = now.toLocaleString('bn-BD');
+
+      saveRequest({
+        transactionId,
+        amount,
+        method,
+        phone: config.code + phone,
+        country: selectedCountry,
+        status: 'pending',
+        requestTime,
+        actionTime: null
+      });
+
+      balance -= amount;
+      updateBalance();
+
+      status.innerHTML = `রিকোয়েস্ট পাঠানো হয়েছে!<br>ট্রানজেকশন: <strong>${transactionId}</strong>`;
+      status.style.color = '#00ff88';
+
+      document.getElementById('phone-number').value = '';
+      document.getElementById('amount').value = '';
+
+      loadHistory();
+    };
+
+    // প্রথম লোড
+    loadMethods(countries[selectedCountry]);
+    loadHistory();
+
+    // ব্যাক বাটন
+    tg.BackButton.show();
+    tg.onEvent('backButtonClicked', goToHome);
+  </script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+ <!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Support - Meshchain.Ai</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="profile">
+      <img id="user-avatar" src="" alt="Avatar" class="avatar" />
+      <div class="user-info">
+        <div class="name-row">
+          <p id="user-name" class="username">লোড হচ্ছে...</p>
+          <div class="verified-badge">Verified</div>
+        </div>
+        <p class="balance">ব্যালেন্স: ২৭০ টাকা</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Support Content -->
+  <main class="main-content">
+    <h1>সাপোর্ট</h1>
+
+    <div class="support-card">
+      <h3>সমস্যা হলে সাথে যোগাযোগ করুন</h3>
+      <p>আমরা ২৪/৭ সাপোর্ট দিয়ে থাকি</p>
+
+      <div class="btn-group">
+        <button onclick="window.open('https://t.me/meshchain_support')" class="btn-primary">Telegram</button>
+        <button onclick="window.open('https://wa.me/8801XXXXXXXXX')" class="btn-success">WhatsApp</button>
+      </div>
+
+      <div class="faq-section">
+        <h4>প্রশ্নোত্তর (FAQ)</h4>
+        <div class="faq-item">
+          <p class="question">কীভাবে রেফার করব?</p>
+          <p class="answer">হোমে গিয়ে "Copy Link" ক্লিক করুন → শেয়ার করুন।</p>
+        </div>
+        <div class="faq-item">
+          <p class="question">উইথড্র কতদিন লাগে?</p>
+          <p class="answer">২৪ ঘণ্টার মধ্যে বিকাশ/নগদে পেমেন্ট।</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+ <!-- তোমার নিজের নেভিগেশন -->
+<nav class="bottom-nav">
+  <button class="nav-item" onclick="goToHome()">Home</button>
+  <button class="nav-item active">Support</button>
+  <button class="nav-item" onclick="goToTasks()">Tasks</button>
+  <button class="nav-item"onclick="goToWithdraw()">Withdraw</button>
+</nav>
+
+<script>
+  
+  
+  
+  const tg = window.Telegram.WebApp;
+  tg.ready();
+  tg.expand();
+
+  const user = tg.initDataUnsafe.user;
+
+  // নাম + ছবি
+  document.getElementById('user-name').textContent = user?.first_name || 'অজানা';
+  const avatar = document.getElementById('user-avatar');
+  if (user?.photo_url) {
+    avatar.src = user.photo_url + '?size=big';
+  } else {
+    const initial = (user?.first_name?.[0] || 'U').toUpperCase();
+    avatar.src = `https://ui-avatars.com/api/?name=${initial}&background=00aaff&color=fff&size=128&bold=true`;
+  }
+
+  // নেভিগেশন ফাংশন
+  function goToHome() {
+    window.location.href = 'index.html';
+  }
+
+  function goToTasks() {
+    window.location.href = 'tasks.html'; // এখন ১০০% কাজ করবে
+  }
+  
+  function goToWithdraw() {
+      window.location.href = 'withdraw.html';
+}
+
+  // ব্যাক বাটন
+  tg.BackButton.show();
+  tg.onEvent('backButtonClicked', () => {
+    goToHome();
+  });
+</script>
+  </script>
+</body>
+</html>

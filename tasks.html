@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Tasks - Meshchain.Ai</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="profile">
+      <img id="user-avatar" src="" alt="Avatar" class="avatar" />
+      <div class="user-info">
+        <div class="name-row">
+          <p id="user-name" class="username">লোড হচ্ছে...</p>
+          <div class="verified-badge">Verified</div>
+        </div>
+        <p class="balance">ব্যালেন্স: <span id="balance">২৭০</span> টাকা</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Tasks Content -->
+  <main class="main-content">
+    <h1>টাস্কস</h1>
+
+    <!-- Ad Task -->
+    <div class="task-card">
+      <div class="task-header">
+        <h3>বিজ্ঞাপন দেখুন</h3>
+        <p class="task-reward">+৫ টাকা</p>
+      </div>
+      <p class="task-progress">আজ: <strong id="ad-count">0</strong> / 10</p>
+      <button id="watch-ad-btn" class="btn-primary">বিজ্ঞাপন দেখুন</button>
+      <p id="ad-status" class="status-text"></p>
+    </div>
+
+    <!-- Join Tasks -->
+    <div class="task-card" id="join-telegram-channel">
+      <div class="task-header">
+        <h3>টেলিগ্রাম চ্যানেল জয়েন</h3>
+        <p class="task-reward">+১০ টাকা</p>
+      </div>
+      <p class="task-desc">আমাদের চ্যানেলে জয়েন করুন</p>
+      <div class="btn-group">
+        <button onclick="joinLink('https://t.me/meshchain_official')" class="btn-success">জয়েন করুন</button>
+        <button id="check-channel" class="btn-primary" disabled>চেক করুন</button>
+      </div>
+      <p id="channel-status" class="status-text"></p>
+    </div>
+
+    <div class="task-card" id="join-telegram-group">
+      <div class="task-header">
+        <h3>টেলিগ্রাম গ্রুপ জয়েন</h3>
+        <p class="task-reward">+১০ টাকা</p>
+      </div>
+      <p class="task-desc">গ্রুপে জয়েন করুন</p>
+      <div class="btn-group">
+        <button onclick="joinLink('https://t.me/meshchain_group')" class="btn-success">জয়েন করুন</button>
+        <button id="check-group" class="btn-primary" disabled>চেক করুন</button>
+      </div>
+      <p id="group-status" class="status-text"></p>
+    </div>
+
+    <div class="task-card" id="join-youtube">
+      <div class="task-header">
+        <h3>ইউটিউব চ্যানেল সাবস্ক্রাইব</h3>
+        <p class="task-reward">+১০ টাকা</p>
+      </div>
+      <p class="task-desc">সাবস্ক্রাইব করুন</p>
+      <div class="btn-group">
+        <button onclick="joinLink('https://youtube.com/@meshchain')" class="btn-success">সাবস্ক্রাইব</button>
+        <button id="check-youtube" class="btn-primary" disabled>চেক করুন</button>
+      </div>
+      <p id="youtube-status" class="status-text"></p>
+    </div>
+
+    <div class="task-card" id="join-facebook">
+      <div class="task-header">
+        <h3>ফেসবুক পেজ লাইক</h3>
+        <p class="task-reward">+১০ টাকা</p>
+      </div>
+      <p class="task-desc">পেজে লাইক দিন</p>
+      <div class="btn-group">
+        <button onclick="joinLink('https://facebook.com/meshchain')" class="btn-success">লাইক দিন</button>
+        <button id="check-facebook" class="btn-primary" disabled>চেক করুন</button>
+      </div>
+      <p id="facebook-status" class="status-text"></p>
+    </div>
+
+  </main>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+  <button class="nav-item" onclick="goToHome()">Home</button>
+  <button class="nav-item" onclick="goToSupport()">Support</button>
+  <button class="nav-item active">Tasks</button>
+  <button class="nav-item" onclick="goToWithdraw()">Withdraw</button>
+</nav>
+
+  <!-- JavaScript -->
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+
+    const user = tg.initDataUnsafe.user;
+    let balance = 270;
+    let adCount = 0;
+    const adLimit = 10;
+
+    // UI আপডেট
+    document.getElementById('user-name').textContent = user?.first_name || 'অজানা';
+    document.getElementById('balance').textContent = balance;
+
+    const avatar = document.getElementById('user-avatar');
+    if (user?.photo_url) {
+      avatar.src = user.photo_url + '?size=big';
+    } else {
+      const initial = (user?.first_name?.[0] || 'U').toUpperCase();
+      avatar.src = `https://ui-avatars.com/api/?name=${initial}&background=00aaff&color=fff&size=128&bold=true`;
+    }
+
+    // নেভিগেশন
+    function goToHome() { 
+      window.location.href = 'index.html'; 
+    }
+    function goToSupport() { 
+      window.location.href = 'support.html'; 
+    }
+  
+  function goToWithdraw() {
+    window.location.href = 'withdraw.html';
+  }
+
+    // জয়েন লিংক
+    function joinLink(url) {
+      window.open(url, '_blank');
+      setTimeout(() => {
+        const btnId = url.includes('channel') ? 'check-channel' :
+                      url.includes('group') ? 'check-group' :
+                      url.includes('youtube') ? 'check-youtube' :
+                      'check-facebook';
+        document.getElementById(btnId).disabled = false;
+        document.getElementById(btnId).textContent = 'চেক করুন (১০ সেকেন্ড)';
+      }, 1000);
+    }
+
+    // চেক ফাংশন
+    function checkJoin(taskId, statusId, reward) {
+      const status = document.getElementById(statusId);
+      status.textContent = 'চেক হচ্ছে...';
+      status.style.color = '#00aaff';
+
+      setTimeout(() => {
+        // সিমুলেশন: ৭০% সফল
+        if (Math.random() > 0.3) {
+          balance += reward;
+          document.getElementById('balance').textContent = balance;
+          status.innerHTML = 'কমপ্লিট! +১০ টাকা';
+          status.style.color = '#00ff88';
+          document.getElementById(taskId).innerHTML = `
+            <div class="task-complete">
+              <p>টাস্ক কমপ্লিট</p>
+              <p class="task-reward">+১০ টাকা</p>
+            </div>`;
+        } else {
+          status.textContent = '১০ সেকেন্ড থাকুন!';
+          status.style.color = '#ff4444';
+        }
+      }, 2000);
+    }
+
+    // চেক বাটন
+    document.getElementById('check-channel').onclick = () => checkJoin('join-telegram-channel', 'channel-status', 10);
+    document.getElementById('check-group').onclick = () => checkJoin('join-telegram-group', 'group-status', 10);
+    document.getElementById('check-youtube').onclick = () => checkJoin('join-youtube', 'youtube-status', 10);
+    document.getElementById('check-facebook').onclick = () => checkJoin('join-facebook', 'facebook-status', 10);
+
+    // বিজ্ঞাপন
+    document.getElementById('watch-ad-btn').onclick = () => {
+      if (adCount >= adLimit) {
+        tg.showAlert('আজকের লিমিট শেষ!');
+        return;
+      }
+
+      const status = document.getElementById('ad-status');
+      status.textContent = 'বিজ্ঞাপন লোড হচ্ছে...';
+      status.style.color = '#00aaff';
+
+      const startTime = Date.now();
+      let closedEarly = false;
+
+      const adWindow = window.open('https://via.placeholder.com/600x400/000000/00ff00?text=AD+15+SEC', '_blank', 'width=600,height=400');
+
+      const timer = setInterval(() => {
+        if (adWindow.closed) {
+          clearInterval(timer);
+          const elapsed = (Date.now() - startTime) / 1000;
+          if (elapsed >= 15 && !closedEarly) {
+            adCount++;
+            balance += 5;
+            document.getElementById('balance').textContent = balance;
+            document.getElementById('ad-count').textContent = adCount;
+            status.innerHTML = 'কংগ্রাচুলেশন! +৫ টাকা';
+            status.style.color = '#00ff88';
+          } else {
+            balance = Math.max(0, balance - 5);
+            document.getElementById('balance').textContent = balance;
+            status.innerHTML = 'আগে বন্ধ! -৫ টাকা';
+            status.style.color = '#ff4444';
+          }
+          closedEarly = true;
+        }
+      }, 500);
+
+      setTimeout(() => {
+        if (!adWindow.closed) adWindow.close();
+      }, 16000);
+    };
+
+    // ব্যাক বাটন
+    tg.BackButton.show();
+    tg.onEvent('backButtonClicked', goToHome);
+  </script>
+</body>
+</html>
