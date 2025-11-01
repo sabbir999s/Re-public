@@ -1,0 +1,116 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login - RedRose</title>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #0f0f1a, #1a1a2e);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .login-box {
+      background: rgba(26, 26, 46, 0.95);
+      padding: 40px;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+      border: 1px solid #00aaff;
+      box-shadow: 0 0 30px rgba(0, 170, 255, 0.3);
+      backdrop-filter: blur(10px);
+    }
+    .logo {
+      width: 80px; height: 80px;
+      background: #00aaff; color: white;
+      border-radius: 50%; margin: 0 auto 20px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px; font-weight: 700;
+      box-shadow: 0 0 20px rgba(0, 170, 255, 0.5);
+    }
+    input {
+      width: 100%; padding: 14px; margin: 10px 0;
+      background: #111; border: 1px solid #00aaff;
+      border-radius: 12px; color: white; font-size: 15px;
+    }
+    button {
+      width: 100%; padding: 14px; background: #00aaff;
+      border: none; border-radius: 12px; color: white;
+      font-size: 16px; font-weight: 600; cursor: pointer;
+      margin-top: 10px;
+      transition: 0.3s;
+    }
+    button:hover { background: #0088cc; }
+    .error { color: #ff4444; margin-top: 10px; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+  <div class="login-box">
+    <div class="logo">A</div>
+    <h2>অ্যাডমিন লগইন</h2>
+    <input type="text" id="username" placeholder="ইউজারনেম (যেমন: admin)" />
+    <input type="password" id="password" placeholder="পাসওয়ার্ড" />
+    <button id="login-btn">লগইন করুন</button>
+    <p class="error" id="error"></p>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCmlgT1e5tWCWQ6yKSO6Z3vd8EJqdgso8A",
+      authDomain: "redroseadmin.firebaseapp.com",
+      projectId: "redroseadmin",
+      storageBucket: "redroseadmin.firebasestorage.app",
+      messagingSenderId: "984186362373",
+      appId: "1:984186362373:web:5e1e60aead3b468d875a6c",
+      measurementId: "G-4HVGTVR3DB"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    document.getElementById('login-btn').onclick = () => {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const error = document.getElementById('error');
+      error.textContent = '';
+
+      if (!username || !password) {
+        error.textContent = 'ইউজারনেম ও পাসওয়ার্ড দিন!';
+        return;
+      }
+
+      const email = `${username}@redrose.com`;
+
+      console.log("লগইন চেষ্টা:", email);
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then(() => {
+          window.location.href = 'admin.html';
+        })
+        .catch((err) => {
+          if (err.code === 'auth/user-not-found') {
+            error.textContent = 'ইউজার পাওয়া যায়নি! Firebase-এ তৈরি করো।';
+          } else if (err.code === 'auth/wrong-password') {
+            error.textContent = 'ভুল পাসওয়ার্ড!';
+          } else {
+            error.textContent = 'লগইন ব্যর্থ: ' + err.message;
+          }
+        });
+    };
+  </script>
+</body>
+</html>
