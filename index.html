@@ -383,7 +383,7 @@ tg.onEvent('backButtonClicked', () => {
 
 // রেফারেল লিংক কপি
 document.getElementById('copy-btn').onclick = () => { // Changed copy-referral-btn to copy-btn based on HTML
-  const link = `https://t.me/${tg.initDataUnsafe.chat_type === 'sender' ? tg.initDataUnsafe.chat_id : '@Redrosebpn_bot'}?startattach=invite_${userId}`;
+  const link = `https://t.me/${tg.initDataUnsafe.chat_type === 'sender' ? tg.initDataUnsafe.chat_id : 'Redrosebpn_bot'}?startattach=invite_${userId}`;
   navigator.clipboard.writeText(link).then(() => {
     document.getElementById('referral-link').textContent = link;
     tg.showAlert('রেফারেল লিঙ্ক কপি হয়েছে!');
