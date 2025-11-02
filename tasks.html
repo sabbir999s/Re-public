@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Tasks - Meshchain.Ai</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="header">
+    <div class="profile">
+      <img id="user-avatar" src="" alt="Avatar" class="avatar" />
+      <div class="user-info">
+        <div class="name-row">
+          <p id="user-name" class="username">লোড হচ্ছে...</p>
+          <div class="verified-badge">Verified</div>
+        </div>
+        <p class="balance">Balance: <span id="balance">0</span>৳</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <h1>Task</h1>
+
+    <div class="task-card">
+      <div class="task-header">
+        <h3>বিজ্ঞাপন দেখুন</h3>
+        <p class="task-reward">+৫ টাকা</p>
+      </div>
+      <p class="task-progress">আজ: <strong id="ad-count">0</strong> / 10</p>
+      <button id="watch-ad-btn" class="btn-primary">বিজ্ঞাপন দেখুন</button>
+      <p id="ad-status" class="status-text"></p>
+    </div>
+
+    <div class="task-card" id="join-telegram-channel">
+      <div class="task-header">
+        <h3>টেলিগ্রাম চ্যানেল জয়েন</h3>
+        <p class="task-reward">+১০ টাকা</p>
+      </div>
+      <p class="task-desc">আমাদের চ্যানেলে জয়েন করুন</p>
+      <div class="btn-group">
+        <button onclick="joinLink('https://t.me/meshchain_official')" class="btn-success">জয়েন করুন</button>
+        <button id="check-channel" class="btn-primary" disabled>চেক করুন</button>
+      </div>
+      <p id="channel-status" class="status-text"></p>
+    </div>
+
+    <div class="task-card" id="join-telegram-group">
+      <div class="task-header">
+        <h3>টেলিগ্রাম গ্রুপ জয়েন</h3>
+        <p class="task-reward">+১০ টাকা</p>
+      </div>
+      <p class="task-desc">গ্রুপে জয়েন করুন</p>
+      <div class="btn-group">
+        <button onclick="joinLink('https://t.me/meshchain_group')" class="btn-success">জয়েন করুন</button>
+        <button id="check-group" class="btn-primary" disabled>চেক করুন</button>
+      </div>
+      <p id="group-status" class="status-text"></p>
+    </div>
+
+    <div class="task-card" id="join-youtube">
+      <div class="task-header">
+        <h3>ইউটিউব চ্যানেল সাবস্ক্রাইব</h3>
+        <p class="task-reward">+১০ টাকা</p>
+      </div>
+      <p class="task-desc">সাবস্ক্রাইব করুন</p>
+      <div class="btn-group">
+        <button onclick="joinLink('https://youtube.com/@meshchain')" class="btn-success">সাবস্ক্রাইব</button>
+        <button id="check-youtube" class="btn-primary" disabled>চেক করুন</button>
+      </div>
+      <p id="youtube-status" class="status-text"></p>
+    </div>
+
+    <div class="task-card" id="join-facebook">
+      <div class="task-header">
+        <h3>ফেসবুক পেজ লাইক</h3>
+        <p class="task-reward">+১০ টাকা</p>
+      </div>
+      <p class="task-desc">পেজে লাইক দিন</p>
+      <div class="btn-group">
+        <button onclick="joinLink('https://facebook.com/meshchain')" class="btn-success">লাইক দিন</button>
+        <button id="check-facebook" class="btn-primary" disabled>চেক করুন</button>
+      </div>
+      <p id="facebook-status" class="status-text"></p>
+    </div>
+
+  </main>
+
+  <nav class="bottom-nav">
+  <button class="nav-item" onclick="goToHome()">Home</button>
+  <button class="nav-item" onclick="goToSupport()">Support</button>
+  <button class="nav-item active">Tasks</button>
+  <button class="nav-item" onclick="goToWithdraw()">Withdraw</button>
+</nav>
+
+  <div id="ad-loading-popup" class="popup-overlay" style="display: none;">
+    <div class="popup-card ad-popup">
+      <h2>বিজ্ঞাপন লোড হচ্ছে...</h2>
+      <p id="loading-timer" class="timer-text">১০ সেকেন্ড বাকি</p>
+      <p id="loading-status-text" class="status-text-popup">অনুগ্রহ করে অপেক্ষা করুন।</p>
+    </div>
+  </div>
+  
+  <div id="ad-fail-popup" class="popup-overlay" style="display: none;">
+    <div class="popup-card ad-fail-popup-card">
+      <h2 style="color: #ff4444;">বিজ্ঞাপন লোড ব্যর্থ!</h2>
+      <p class="fail-icon">❌</p>
+      <p id="fail-status-text" class="status-text-popup">দুঃখিত, ১০ সেকেন্ড চেষ্টা করার পরও বিজ্ঞাপনটি লোড করা যায়নি।</p>
+      <button onclick="document.getElementById('ad-fail-popup').style.display='none'" class="btn-primary" style="margin-top: 15px; background: #ff4444;">বন্ধ করুন</button>
+    </div>
+  </div>
+
+  <div id="ad-success-popup" class="popup-overlay" style="display: none;">
+    <div class="popup-card ad-success-popup-card">
+      <h2 style="color: #00ff88;">অ্যাড দেখা সফল!</h2>
+      <p class="success-icon">✅</p>
+      <p class="status-text-popup">আপনার ব্যালেন্সে +৫ টাকা যোগ হয়েছে।</p>
+      <button onclick="document.getElementById('ad-success-popup').style.display='none'" class="btn-primary" style="margin-top: 15px;">ঠিক আছে</button>
+    </div>
+  </div>
+
+  <script>
+    // tasks.html-এর জন্য সম্পূর্ণ নতুন JavaScript
+const firebaseConfig = {
+  apiKey: "AIzaSyCmlgT1e5tWCWQ6yKSO6Z3vd8EJqdgso8A",
+  authDomain: "redroseadmin.firebaseapp.com",
+  projectId: "redroseadmin",
+  storageBucket: "redroseadmin.firebasestorage.app",
+  messagingSenderId: "984186362373",
+  appId: "1:984186362373:web:5e1e60aead3b468d875a6c",
+  measurementId: "G-4HVGTVR3DB"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
+
+const user = tg.initDataUnsafe.user;
+const userId = user?.id.toString() || 'unknown';
+const userRef = db.collection('users').doc(userId);
+let userData = {}; // ব্যবহারকারীর ডাটা সেভ রাখার জন্য
+
+// ⭐ AdsGram ইন্টিগ্রেশন কনফিগারেশন ⭐
+const ADSGRAM_REWARD_BLOCK_ID = 'YOUR_ADSGRAM_BLOCK_ID'; 
+
+// 🔥 নতুন কনস্ট্যান্ট যোগ করা হয়েছে
+const AD_REWARD_AMOUNT = 5; // পুরষ্কারের পরিমাণ
+const AD_WATCH_DURATION = 15; // সেকেন্ড (বিজ্ঞাপন দেখার জন্য প্রয়োজনীয় সময়)
+const AD_COOLDOWN_DURATION = 120; // সেকেন্ড (২ মিনিট)
+const AD_LOAD_ATTEMPT_DURATION = 10; // সেকেন্ড (এড লোড হওয়ার জন্য সর্বোচ্চ সময়)
+
+
+// গ্লোবাল নেভিগেশন ফাংশন (CSS অপরিবর্তিত রাখতে)
+function goToHome() { window.location.href = 'index.html'; }
+function goToSupport() { window.location.href = 'support.html'; }
+function goToTasks() { window.location.href = 'tasks.html'; }
+function goToWithdraw() { window.location.href = 'withdraw.html'; }
+
+// ব্যান পপ-আপ (index.html থেকে কপি করা)
+function showBanPopup(isBanned, bannedUntil) {
+  let message = '';
+  let title = '⛔️ একাউন্ট ব্যানড!';
+  if (isBanned) {
+    message = 'আপনার একাউন্ট স্থায়ীভাবে ব্যান করা হয়েছে। অনুগ্রহ করে সাপোর্টে যোগাযোগ করুন।';
+  } else if (bannedUntil) {
+    title = '⏸ একাউন্ট সাসপেন্ডড!';
+    const dateStr = bannedUntil.toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    message = `আপনার একাউন্টটি সাময়িকভাবে সাসপেন্ড করা হয়েছে। সাসপেনশন শেষ হবে: <strong>${dateStr}</strong>।`;
+  }
+  
+  // পপ-আপের HTML স্ট্রাকচার (CSS অপরিবর্তিত রাখতে JS-এ তৈরি)
+  const popupHTML = `
+    <div id="dynamic-popup-overlay" class="popup-overlay" style="
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+        background: rgba(0, 0, 0, 0.9); z-index: 9999; display: flex; 
+        justify-content: center; align-items: center; backdrop-filter: blur(8px);">
+      <div class="popup-card" style="
+        background: var(--card-bg); padding: 30px; border-radius: 20px; 
+        width: 90%; max-width: 350px; text-align: center; border: 2px solid var(--neon);
+        box-shadow: 0 0 40px rgba(0, 170, 255, 0.7);">
+        <h2 style="color: #ff4444; margin-bottom: 15px; font-size: 20px;">${title}</h2>
+        <p style="color: var(--text); font-size: 16px; line-height: 1.6;">${message}</p>
+        <button id="popup-btn" class="btn-primary" style="margin-top: 25px; width: 100%; background: #ff4444;">Close App</button>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', popupHTML);
+  document.getElementById('balance').textContent = 'FREEZED'; 
+  tg.BackButton.hide();
+  document.getElementById('popup-btn').onclick = () => tg.close();
+}
+
+
+// রিয়েলটাইম আপডেট (ডাটা লোড ও ব্যান চেক)
+userRef.onSnapshot(doc => {
+  if (doc.exists) {
+    userData = doc.data(); // ডাটা সেভ
+    document.getElementById('balance').textContent = userData.balance || 0;
+    document.getElementById('ad-count').textContent = userData.adsWatchedToday || 0;
+    
+    // ব্যান/সাসপেন্ড চেক
+    const isBanned = userData.isBanned || false;
+    const bannedUntil = userData.bannedUntil?.toDate();
+    const isSuspended = bannedUntil && bannedUntil > new Date();
+    
+    if (isBanned || isSuspended) {
+      showBanPopup(isBanned, bannedUntil);
+      return;
+    }
+
+    // টাস্ক কমপ্লিট চেক
+    if (userData.joinedChannel) document.getElementById('join-telegram-channel').innerHTML = '<div class="task-complete"><p>টাস্ক কমপ্লিট</p><p class="task-reward">+১০ টাকা</p></div>';
+    if (userData.joinedGroup) document.getElementById('join-telegram-group').innerHTML = '<div class="task-complete"><p>টাস্ক কমপ্লিট</p><p class="task-reward">+১০ টাকা</p></div>';
+    if (userData.joinedYoutube) document.getElementById('join-youtube').innerHTML = '<div class="task-complete"><p>টাস্ক কমপ্লিট</p><p class="task-reward">+১০ টাকা</p></div>';
+
+  }
+});
+
+
+// 🔥 নতুন ফাংশন: কাউন্টডাউন টাইমার শুরু করা
+async function startCooldownTimer(btnElement, statusElement) {
+    let remaining = AD_COOLDOWN_DURATION;
+    btnElement.disabled = true;
+
+    // অ্যাড ওয়াচড কাউন্ট আপডেট করার পর ব্যালেন্স যোগ করা (পুরষ্কার)
+    await userRef.update({
+      balance: firebase.firestore.FieldValue.increment(AD_REWARD_AMOUNT)
+    });
+
+
+    const countdownInterval = setInterval(() => {
+        if (remaining <= 0) {
+            clearInterval(countdownInterval);
+            btnElement.disabled = false;
+            btnElement.textContent = 'বিজ্ঞাপন দেখুন';
+            statusElement.innerHTML = '';
+            tg.showAlert("নতুন বিজ্ঞাপন দেখার জন্য প্রস্তুত!");
+            return;
+        }
+
+        const minutes = Math.floor(remaining / 60);
+        const seconds = remaining % 60;
+        const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+        // বাটন টেক্সটে কাউন্টডাউন দেখানো
+        btnElement.textContent = `পরবর্তী অ্যাড: ${timeString}`;
+        
+        remaining--;
+    }, 1000);
+}
+
+
+// 🔥 AdsGram ইন্টিগ্রেশন সহ অ্যাড দেখার ফাংশন (ত্রুটি হ্যান্ডেলিং ও নতুন লজিক সহ)
+document.getElementById('watch-ad-btn').onclick = async function watchAd() {
+    // 1. আজকের অ্যাড লিমিট চেক
+    if ((userData.adsWatchedToday || 0) >= 10) {
+        tg.showAlert('আজকের লিমিট শেষ!');
+        return;
+    }
+    
+    const btn = document.getElementById('watch-ad-btn');
+    const status = document.getElementById('ad-status');
+    const loadingPopup = document.getElementById('ad-loading-popup');
+    const loadingTimer = document.getElementById('loading-timer');
+    const loadingStatusText = document.getElementById('loading-status-text');
+    
+    // 2. লোডিং পপ-আপ দেখানো
+    loadingPopup.style.display = 'flex';
+    loadingTimer.textContent = `${AD_LOAD_ATTEMPT_DURATION} সেকেন্ড বাকি`;
+    loadingStatusText.innerHTML = `বিজ্ঞাপন লোড হচ্ছে...`;
+    
+    btn.disabled = true;
+
+    // 3. AdsGram API রিকোয়েস্ট URL তৈরি
+    const userId = tg.initDataUnsafe.user?.id.toString() || 'unknown'; 
+    const adsgramApiUrl = `https://api.adsgram.ai/advbot?tgid=${userId}&blockid=${ADSGRAM_REWARD_BLOCK_ID}`;
+    
+    let isAdSuccessfullyLoaded = false;
+    let loadingCountdown;
+
+    // 🔥 নতুন: লোডিং টাইমার কাউন্টডাউন শুরু করা (পপ-আপের জন্য)
+    let loadAttemptSeconds = AD_LOAD_ATTEMPT_DURATION;
+    const loadingAttemptCountdown = setInterval(() => {
+        loadAttemptSeconds--;
+        if (loadAttemptSeconds >= 0) {
+            loadingTimer.textContent = `${loadAttemptSeconds} সেকেন্ড বাকি`;
+        }
+    }, 1000);
+
+
+    // 4. লোডিং টাইম আউট সেট করা (যদি API লোড হতে বেশি সময় নেয়)
+    const loadingTimeout = setTimeout(() => {
+        if (!isAdSuccessfullyLoaded) {
+            clearInterval(loadingAttemptCountdown); // লোডিং কাউন্টডাউন বন্ধ
+            loadingPopup.style.display = 'none';
+            
+            // 🔥 নতুন: Ad Load Fail Popup দেখানো
+            const failPopup = document.getElementById('ad-fail-popup');
+            failPopup.style.display = 'flex';
+            document.getElementById('fail-status-text').innerHTML = `দুঃখিত, ${AD_LOAD_ATTEMPT_DURATION} সেকেন্ড চেষ্টা করার পরও বিজ্ঞাপনটি লোড করা যায়নি।`;
+
+            status.innerHTML = `বিজ্ঞাপন লোড ব্যর্থ। আবার চেষ্টা করুন।`;
+            status.style.color = '#ffaa00';
+            btn.disabled = false;
+        }
+    }, AD_LOAD_ATTEMPT_DURATION * 1000 + 500); // 10.5 সেকেন্ডের টাইমআউট
+
+    try {
+        // 5. AdsGram API কল 
+        const response = await fetch(adsgramApiUrl);
+        
+        // 6. নতুন লজিক: সাড়া (Response) খালি কিনা চেক করা (ত্রুটি এড়াতে)
+        const responseText = await response.text();
+        if (!responseText.trim()) {
+            throw new Error("AdsGram সার্ভার থেকে কোনো ডেটা পাওয়া যায়নি। BLOCK_ID বা কনফিগারেশন চেক করুন।");
+        }
+        
+        // 7. JSON পার্স করার চেষ্টা
+        const data = JSON.parse(responseText);
+
+        if (data.click_url && data.button_reward_name && data.reward_url) {
+            
+            isAdSuccessfullyLoaded = true;
+            clearTimeout(loadingTimeout); // লোডিং টাইমআউট বন্ধ করা
+            clearInterval(loadingAttemptCountdown); // লোডিং কাউন্টডাউন বন্ধ
+
+            // 8. লোডিং পপ-আপে তথ্য আপডেট
+            loadingStatusText.innerHTML = `বিজ্ঞাপন সফলভাবে লোড হয়েছে। <br>ক্লিক করে বিজ্ঞাপনটি চালু করুন।`;
+            loadingTimer.textContent = `সফল! অ্যাড চালু হচ্ছে...`;
+            
+            // 9. বিজ্ঞাপনের লিংক একটি নতুন উইন্ডোতে ওপেন করা
+            tg.openLink(data.click_url, { try_instant_view: true });
+            
+            // 10. অ্যাড দেখার সময় ট্র্যাকিং শুরু
+            let watchSeconds = 0;
+            let isUserClosedEarly = true; 
+
+            // 11. লোডিং পপ-আপে অ্যাড ওয়াচ টাইমার দেখানো
+            loadingCountdown = setInterval(async () => {
+                watchSeconds++;
+                loadingTimer.textContent = `অবশ্যই ${AD_WATCH_DURATION - watchSeconds} সেকেন্ড দেখুন`;
+                
+                if (watchSeconds >= AD_WATCH_DURATION) {
+                    clearInterval(loadingCountdown);
+                    isUserClosedEarly = false; // সময় পার হলে আর মাইনাস হবে না
+                    loadingTimer.textContent = `সময় শেষ! আপনি এখন অ্যাড ক্লোজ করতে পারবেন।`;
+                    loadingStatusText.style.color = '#00ff88';
+                }
+
+            }, 1000);
+
+            // 12. লোডিং পপ-আপ বন্ধ করা (অ্যাড ওপেন হওয়ার সাথে সাথেই)
+            setTimeout(() => {
+                 loadingPopup.style.display = 'none';
+            }, 1500);
+            
+            // 13. ইউজারকে অ্যাড শেষ হওয়ার পর ম্যানুয়ালি অ্যাপে ফিরতে বলা
+            status.innerHTML = `বিজ্ঞাপন ওপেন হয়েছে। ${AD_WATCH_DURATION} সেকেন্ড দেখুন এবং উইন্ডো ক্লোজ করুন। পুরষ্কারের জন্য অপেক্ষা করুন।`;
+            status.style.color = '#ffff00';
+            
+            // 14. ইউজার ফিরে আসার পর (বা নির্ধারিত সময় পার হওয়ার পর) ফাইনাল চেক
+            setTimeout(async () => {
+                clearInterval(loadingCountdown);
+                
+                if (isUserClosedEarly) {
+                    // 15. 🔥 ১৫ সেকেন্ডের আগে বন্ধ করলে টাকা মাইনাস (Penalty Path)
+                    const penalty = AD_REWARD_AMOUNT;
+                    await userRef.update({
+                        balance: firebase.firestore.FieldValue.increment(-penalty)
+                    });
+                    tg.showAlert(`বিজ্ঞাপনটি ${AD_WATCH_DURATION} সেকেন্ডের আগে ক্লোজ করেছেন। ${penalty} টাকা মাইনাস করা হলো।`);
+                    status.innerHTML = `⚠️ আপনি অ্যাডটি দ্রুত বন্ধ করেছেন। ${penalty} টাকা কাটা হয়েছে।`;
+                    status.style.color = '#ff4444';
+                    btn.disabled = false; 
+
+                } else {
+                    // 16. 🔥 ১৫ সেকেন্ড পর বন্ধ করলে পুরষ্কার দেওয়া (Success Path)
+                    // ক্লায়েন্ট সাইডে Ads Watched Count বৃদ্ধি (লিমিট ট্র্যাক করার জন্য)
+                    await userRef.update({
+                        adsWatchedToday: firebase.firestore.FieldValue.increment(1)
+                    });
+
+                    // 🔥 নতুন: Ad View Success Popup দেখানো
+                    const successPopup = document.getElementById('ad-success-popup');
+                    successPopup.style.display = 'flex';
+                    document.querySelector('.ad-success-popup-card .status-text-popup').textContent = `আপনার ব্যালেন্সে +${AD_REWARD_AMOUNT} টাকা যোগ হয়েছে।`;
+
+                    // 17. পুরষ্কার এবং কাউন্টডাউন শুরু
+                    await startCooldownTimer(btn, status); // এই ফাংশনটি reward যোগ করে এবং countdown শুরু করে।
+                    status.innerHTML = `পরবর্তী বিজ্ঞাপনের জন্য অপেক্ষা করুন।`;
+                    status.style.color = '#00ff88';
+                }
+                
+            }, AD_WATCH_DURATION * 1000);
+
+
+        } else {
+            // যদি বিজ্ঞাপন না থাকে বা ডেটা ভুল আসে
+            clearTimeout(loadingTimeout);
+            clearInterval(loadingAttemptCountdown);
+            loadingPopup.style.display = 'none';
+            status.innerHTML = `দুঃখিত, এখন কোন বিজ্ঞাপন নেই। কিছুক্ষণ পর আবার চেষ্টা করুন।`;
+            status.style.color = '#ffaa00';
+            btn.disabled = false;
+        }
+
+    } catch (e) {
+        // 18. ত্রুটি হ্যান্ডেলিং (JSON পার্স ত্রুটি বা নতুন যোগ করা খালি সাড়ার ত্রুটি)
+        clearTimeout(loadingTimeout);
+        clearInterval(loadingAttemptCountdown);
+        loadingPopup.style.display = 'none';
+        
+        let errorMessage = "API থেকে সাড়া পেতে বা ডেটা পড়তে সমস্যা হয়েছে।";
+        
+        if (e.message.includes('JSON') || e.message.includes('AdsGram')) {
+            // 🔥 নতুন: Ad Load Fail Popup দেখানো (API/JSON Error এর জন্য)
+            const failPopup = document.getElementById('ad-fail-popup');
+            failPopup.style.display = 'flex';
+            document.getElementById('fail-status-text').innerHTML = `AdsGram API ত্রুটি বা ভুল BLOCK_ID।`;
+            
+            tg.showAlert(`বিজ্ঞাপন লোড করতে সমস্যা হয়েছে। \nকারণ: BLOCK_ID নেই বা কনফিগারেশন ত্রুটি।`); 
+            errorMessage = `বিজ্ঞাপন লোড করতে সমস্যা হচ্ছে: ${e.message}। AdsGram BLOCK_ID সঠিকভাবে কনফিগার করা হয়েছে কিনা, তা নিশ্চিত করুন।`;
+        }
+
+        console.error("AdsGram API Error:", e);
+        status.innerHTML = errorMessage;
+        status.style.color = '#ff4444';
+        btn.disabled = false;
+        
+    } finally {
+        // 19. final block, no change
+    }
+};
+
+
+// অন্যান্য টাস্কের ফাংশন
+function joinLink(url) {
+  tg.openLink(url);
+}
+
+// নাম + ছবি লোড
+document.getElementById('user-name').textContent = user?.first_name || 'অজানা';
+const avatar = document.getElementById('user-avatar');
+if (user?.photo_url) {
+  avatar.src = user.photo_url + '?size=big';
+} else {
+  const initial = (user?.first_name?.[0] || 'U').toUpperCase();
+  avatar.src = `https://ui-avatars.com/api/?name=${initial}&background=00aaff&color=fff&size=128&bold=true`;
+}
+
+// ব্যাক বাটন
+tg.BackButton.show();
+tg.onEvent('backButtonClicked', () => {
+  window.location.href = 'index.html';
+});
+
+  </script>
+
+</body>
+</html>

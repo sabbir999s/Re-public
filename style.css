@@ -1,0 +1,1374 @@
+:root {
+  --bg: linear-gradient(135deg, #0f0f1e, #1a1a2e);
+  --card-bg: rgba(30, 30, 50, 0.6);
+  --glass: rgba(255, 255, 255, 0.1);
+  --neon: #00aaff;
+  --text: #e0f7ff;
+  --text-muted: #88cfff;
+  --success: #00ff88;
+  --shadow-3d: 8px 8px 16px rgba(0,0,0,0.4), -8px -8px 16px rgba(0,0,0,0.2);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  padding-bottom: 80px; /* নেভিগেশনের জায়গা */
+}
+
+/* Header */
+.header {
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0, 170, 255, 0.3);
+  padding: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-3d);
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--neon);
+  box-shadow: 0 0 20px var(--neon);
+}
+
+.name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.username {
+  font-weight: 700;
+  font-size: 16px;
+  color: white;
+  text-shadow: 0 0 8px rgba(0, 170, 255, 0.6);
+}
+
+.verified-badge {
+  background: linear-gradient(45deg, #4CAF50, #66bb6a);
+  color: white;
+  font-size: 10px;
+  padding: 3px 7px;
+  border-radius: 12px;
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+.balance {
+  font-size: 14px;
+  color: var(--success);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  padding: 20px 16px;
+  overflow-y: auto;
+}
+
+.main-content h1 {
+  font-size: 22px;
+  background: linear-gradient(90deg, #00aaff, #00ff88);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Stats */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
+  padding: 20px;
+  border-radius: 18px;
+  text-align: center;
+  border: 1px solid rgba(0, 170, 255, 0.3);
+  box-shadow: var(--shadow-3d);
+  transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-8px);
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--neon);
+}
+
+/* Referral */
+.referral-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  padding: 22px;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 170, 255, 0.4);
+  box-shadow: var(--shadow-3d);
+}
+
+.referral-card h2 {
+  font-size: 18px;
+  color: white;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.referral-text {
+  font-size: 14px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+.referral-link-box {
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--neon);
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  word-break: break-all;
+  margin-bottom: 16px;
+  border: 1px dashed var(--neon);
+  text-align: center;
+  font-family: 'Courier New', monospace;
+}
+
+.btn-group {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-primary, .btn-success {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(45deg, #00aaff, #0077cc);
+  color: white;
+  box-shadow: 0 5px 15px rgba(0, 170, 255, 0.4);
+}
+
+.btn-success {
+  background: linear-gradient(45deg, #00ff88, #00cc66);
+  color: black;
+  box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+}
+
+.btn-primary:active, .btn-success:active {
+  transform: translateY(2px);
+}
+
+/* Bottom Navigation - ১০০% ফিক্সড */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(0, 170, 255, 0.3);
+  padding: 10px 0;
+  box-shadow: 0 -10px 20px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  display: flex;
+  justify-content: space-around;
+}
+
+.nav-item {
+  flex: 1;
+  color: #88cfff;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px;
+  background: none;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.nav-item.active {
+  color: var(--neon);
+  font-weight: 700;
+}
+
+.nav-item .icon {
+  font-size: 20px;
+}
+
+/* Support Card */
+.support-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  padding: 24px;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 170, 255, 0.4);
+  box-shadow: var(--shadow-3d);
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.support-card h3 {
+  font-size: 18px;
+  color: white;
+  margin-bottom: 8px;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+.support-card p {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+/* FAQ Section */
+.faq-section {
+  margin-top: 24px;
+  text-align: left;
+}
+
+.faq-section h4 {
+  font-size: 16px;
+  color: #00ff88;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.faq-item {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+  border: 1px dashed rgba(0, 170, 255, 0.3);
+}
+
+.question {
+  font-weight: 700;
+  color: var(--neon);
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.answer {
+  font-size: 13px;
+  color: #ccc;
+  line-height: 1.5;
+}
+
+
+/* Task Card */
+.task-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  padding: 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(0, 170, 255, 0.4);
+  box-shadow: var(--shadow-3d);
+  margin-bottom: 16px;
+  transition: transform 0.3s ease;
+}
+
+.task-card:hover {
+  transform: translateY(-6px);
+}
+
+.task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.task-header h3 {
+  font-size: 16px;
+  color: white;
+  margin: 0;
+}
+
+.task-reward {
+  font-size: 14px;
+  color: #00ff88;
+  font-weight: 700;
+  margin: 0;
+}
+
+.task-progress {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 8px 0;
+}
+
+.task-desc {
+  font-size: 13px;
+  color: #ccc;
+  margin: 8px 0 12px;
+}
+
+/* Task Tips */
+.task-tips {
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px dashed #00ff88;
+  padding: 12px;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 13px;
+  color: #00ff88;
+  margin-top: 10px;
+}
+
+/* তোমার নেভিগেশন স্টাইল */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(30, 30, 50, 0.9);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(0, 170, 255, 0.3);
+  padding: 10px 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-around;
+  box-shadow: 0 -10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.nav-item {
+  flex: 1;
+  padding: 14px 8px;
+  background: none;
+  border: none;
+  color: #88cfff;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.3s ease;
+  border-radius: 14px;
+  margin: 0 6px;
+}
+
+.nav-item:hover {
+  background: rgba(0, 170, 255, 0.2);
+}
+
+/* Active বাটন — উপরে + গাঢ় + গ্লো */
+.nav-item.active {
+  color: #00ff88 !important;
+  background: rgba(0, 255, 136, 0.3) !important;
+  font-weight: 800;
+  transform: translateY(-8px);
+  box-shadow: 0 -6px 16px rgba(0, 255, 136, 0.4);
+  border: 1px solid rgba(0, 255, 136, 0.5);
+}
+
+
+/* Balance Card */
+.balance-card {
+  background: linear-gradient(135deg, #00aaff, #0077cc);
+  color: white;
+  padding: 20px;
+  border-radius: 18px;
+  text-align: center;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-3d);
+}
+
+.balance-card p {
+  font-size: 14px;
+  margin-bottom: 6px;
+  opacity: 0.9;
+}
+
+.balance-card h2 {
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0;
+}
+
+/* Withdraw Card */
+.withdraw-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  padding: 22px;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 170, 255, 0.4);
+  box-shadow: var(--shadow-3d);
+  margin-bottom: 20px;
+}
+
+.withdraw-card h3 {
+  font-size: 17px;
+  color: white;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+/* Method Buttons */
+.method-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.method-btn {
+  flex: 1;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 170, 255, 0.3);
+  color: #88cfff;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.method-btn.active {
+  background: linear-gradient(45deg, #00aaff, #0077cc);
+  color: white;
+  border: 1px solid #00aaff;
+  box-shadow: 0 0 15px rgba(0, 170, 255, 0.4);
+}
+
+/* Input Fields */
+.input-field {
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 14px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 170, 255, 0.3);
+  border-radius: 12px;
+  color: white;
+  font-size: 15px;
+}
+
+.input-field::placeholder {
+  color: #88cfff;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #00aaff;
+  box-shadow: 0 0 10px rgba(0, 170, 255, 0.4);
+}
+
+/* Rules Card */
+.rules-card {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px dashed rgba(0, 170, 255, 0.3);
+}
+
+.rules-card h4 {
+  color: #00ff88;
+  margin-bottom: 10px;
+  font-size: 15px;
+}
+
+.rules-card ul {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13px;
+  color: #ccc;
+}
+
+.rules-card li {
+  margin-bottom: 6px;
+}
+
+/* History */
+.history-section {
+  margin-top: 24px;
+}
+
+.history-section h3 {
+  font-size: 18px;
+  color: white;
+  margin-bottom: 12px;
+}
+
+.history-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.history-item {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-amount {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.history-status {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.history-date {
+  font-size: 12px;
+  color: #88cfff;
+}
+
+.no-history {
+  text-align: center;
+  color: #88cfff;
+  font-style: italic;
+}
+
+.history-item {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 14px;
+  border-radius: 14px;    
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  border: 1px solid rgba(0, 170, 255, 0.2);
+}
+
+.history-details p {
+  margin: 4px 0;
+  font-size: 13px;
+  color: #ccc;
+}
+
+.history-details strong {
+  color: white;
+}
+
+.history-status {
+  font-size: 14px;
+  font-weight: 700;
+  min-width: 60px;
+  text-align: right;
+}
+
+.history-date {
+  font-size: 11px;
+  color: #88cfff;
+  text-align: right;
+}
+
+
+.history-item {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 16px;
+  border-radius: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  border: 1px solid rgba(0, 170, 255, 0.2);
+}
+
+.history-details p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #ccc;
+}
+
+.history-details strong {
+  color: white;
+  font-weight: 700;
+}
+
+.history-status {
+  font-size: 15px;
+  font-weight: 800;
+  min-width: 70px;
+  text-align: right;
+}
+
+.no-history {
+  text-align: center;
+  color: #88cfff;
+  font-style: italic;
+  padding: 20px;
+}
+
+/* তোমার পুরাতন style.css-এ যোগ করো */
+.tab-buttons { display: flex; gap: 10px; margin: 20px 0; flex-wrap: wrap; }
+.tab-btn, .sub-btn { padding: 12px 20px; background: rgba(0,0,0,0.3); border: 1px solid #00aaff; color: #88cfff; border-radius: 12px; font-weight: 600; }
+.tab-btn.active, .sub-btn.active { background: #00aaff; color: white; }
+
+.users-list, .payments-list { display: flex; flex-direction: column; gap: 12px; }
+.user-item, .payment-item {
+  background: rgba(0,0,0,0.3);
+  padding: 16px;
+  border-radius: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  border: 1px solid rgba(0,170,255,0.2);
+}
+.user-img { width: 50px; height: 50px; border-radius: 50%; }
+.user-info, .payment-info { flex: 1; }
+.user-info p, .payment-info p { margin: 4px 0; font-size: 14px; }
+.user-actions, .payment-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.search-box { margin: 15px 0; }
+#search-user { width: 100%; padding: 12px; background: rgba(0,0,0,0.4); border: 1px solid #00aaff; border-radius: 12px; color: white; }
+
+.btn-logout { position: absolute; top: 20px; right: 20px; background: #ff4444; color: white; border: none; padding: 8px 16px; border-radius: 10px; font-size: 14px; }
+
+
+
+/* তোমার style.css-এ যোগ করো */
+.filter-tabs { display: flex; gap: 10px; margin: 15px 0; flex-wrap: wrap; }
+.filter-btn { padding: 10px 16px; background: rgba(0,0,0,0.3); border: 1px solid #00aaff; color: #88cfff; border-radius: 12px; font-size: 14px; }
+.filter-btn.active { background: #00aaff; color: white; }
+
+.users-list, .withdraws-list { display: flex; flex-direction: column; gap: 14px; }
+.user-item, .withdraw-item {
+  background: rgba(0,0,0,0.3);
+  padding: 16px;
+  border-radius: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  border: 1px solid rgba(0,170,255,0.2);
+}
+.user-item.warning { border-color: #ff4444; background: rgba(255,68,68,0.1); }
+.user-img { width: 48px; height: 48px; border-radius: 50%; }
+.user-info p, .withdraw-info p { margin: 4px 0; font-size: 14px; color: #ccc; }
+.user-info .name { font-weight: 700; color: white; }
+.withdraw-status { font-weight: 700; min-width: 70px; text-align: right; }
+.user-actions, .withdraw-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.btn-logout { position: absolute; top: 20px; right: 20px; background: #ff4444; color: white; padding: 8px 14px; border-radius: 10px; font-size: 13px; border: none; }
+
+
+
+/* ======================================= */
+/* ====== ADMIN PANEL SPECIFIC STYLES ====== */
+/* ======================================= */
+.user-item.warning {
+  border-color: var(--neon-warning, #ffaa00);
+  box-shadow: 0 0 15px rgba(255, 170, 0, 0.4);
+}
+
+.user-item.banned {
+  border-color: var(--danger, #ff4444);
+  box-shadow: 0 0 15px rgba(255, 68, 68, 0.4);
+}
+
+.user-item .user-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 100px;
+}
+.user-item .btn-primary, .user-item .btn-success, .user-item .btn-cancel {
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+
+/* ======================================= */
+/* ====== MODAL/POPUP STYLES (User & Admin) ====== */
+/* ======================================= */
+.popup-overlay {
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    right: 0; 
+    bottom: 0; 
+    background: rgba(0, 0, 0, 0.9); 
+    z-index: 9999; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    backdrop-filter: blur(8px);
+}
+
+.popup-card {
+    background: var(--card-bg); 
+    padding: 30px; 
+    border-radius: 20px; 
+    width: 90%; 
+    max-width: 350px; 
+    text-align: center; 
+    border: 2px solid var(--neon);
+    box-shadow: 0 0 40px rgba(0, 170, 255, 0.7);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.popup-card h2 {
+    color: var(--success); 
+    margin-bottom: 15px; 
+    font-size: 20px;
+}
+
+.popup-card p {
+    color: var(--text); 
+    font-size: 16px; 
+    line-height: 1.6;
+}
+
+.popup-card strong {
+    font-weight: bold;
+}
+
+/* সাসপেন্ড কাউন্টডাউন স্টাইল */
+.popup-card #popup-message-content strong {
+    font-size: 24px !important; 
+    color: var(--neon) !important; 
+    margin-top: 10px; 
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* Admin Reject Modal */
+#modal {
+  background: rgba(0, 0, 0, 0.85); /* Slightly darker for modal */
+}
+.modal-content {
+  background: var(--card-bg); 
+  padding: 30px; 
+  border-radius: 16px; 
+  width: 90%; 
+  max-width: 400px; 
+  box-shadow: 0 0 25px rgba(0, 170, 255, 0.5);
+}
+.modal-content textarea {
+  width: 100%;
+  padding: 10px;
+  margin: 15px 0;
+  border-radius: 8px;
+  border: 1px solid var(--neon);
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--text);
+  min-height: 100px;
+  resize: vertical;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* Referral Box Styles - লিংক সহজে কপি করার জন্য */
+.referral-link-box {
+    word-break: break-all;
+    user-select: text;
+}
+
+/* সাসপেনশন টাইমারের জন্য নতুন স্টাইল */
+#suspension-timer {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: var(--warning, #ffaa00); /* সাসপেনশন টাইমারকে কমলা রঙে দেখানো */
+    margin-top: 15px !important;
+    padding-top: 10px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.2);
+    text-shadow: 0 0 5px rgba(255, 170, 0, 0.5);
+}
+
+/* Congrats বাটন স্টাইল */
+#popup-primary-btn {
+    transition: background 0.3s ease;
+}
+
+/* Congrats পপআপের জন্য, JS থেকে এটি ওভাররাইড হবে */
+/* #popup-primary-btn এর সাধারণ স্টাইল red, but JS will make it green for congratulations */
+/* ট্রানজেকশন আইডি সার্চ বক্স এবং অন্যান্য ইনপুট ফিল্ডের স্টাইল */
+.search-input,
+.filter-and-search input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    background: var(--card-bg); /* Dark, translucent background */
+    border: 1px solid rgba(0, 170, 255, 0.5); /* Neon border */
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 16px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.search-input::placeholder {
+    color: var(--text-muted);
+}
+
+.search-input:focus {
+    border-color: var(--neon);
+    box-shadow: 0 0 10px rgba(0, 170, 255, 0.5);
+    outline: none;
+}
+
+/* সকল বাটনের কমন স্টাইল */
+.btn-primary, .btn-cancel, .btn-success {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    margin: 5px;
+    text-align: center;
+}
+
+/* 🔥 "Ban" এবং "বাতিল" (Cancel) বাটনের স্টাইল - (.btn-cancel) */
+.btn-cancel {
+    background-color: #ff4444; /* Red color for warning/ban/cancel */
+    color: var(--text);
+    box-shadow: 0 4px 15px rgba(255, 68, 68, 0.4);
+}
+
+.btn-cancel:hover {
+    background-color: #cc3333;
+    transform: translateY(-2px);
+}
+
+/* "Suspend" বাটনের স্টাইল - (.btn-primary) */
+.btn-primary {
+    background-color: var(--neon); /* Blue neon color for primary actions */
+    color: #1a1a2e;
+    box-shadow: 0 4px 15px rgba(0, 170, 255, 0.4);
+}
+
+/* "Unban" বা "Paid" বাটনের স্টাইল - (.btn-success) */
+.btn-success {
+    background-color: var(--success); /* Green color for success/unban */
+    color: #1a1a2e;
+    box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4);
+}
+
+/* মডালের ভেতরের বাটনের জন্য ফ্লেক্স লেআউট */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+/* সময় নির্বাচন করুন <select> ফিল্ডের স্টাইল */
+#suspend-duration-select {
+    width: 100%;
+    padding: 12px;
+    background: var(--card-bg); /* Dark background */
+    border: 1px solid var(--neon); /* Neon border */
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 16px;
+    appearance: none; /* ব্রাউজারের ডিফল্ট স্টাইল রিমুভ করা */
+    cursor: pointer;
+    
+    /* কাস্টম অ্যারো তৈরি (যদি প্রয়োজন হয়) */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2300aaff'%3e%3cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.21 8.27a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 10px top 50%;
+    background-size: 16px;
+}
+
+#suspend-duration-select option {
+    background-color: #1a1a2e; /* Option background */
+    color: var(--text);
+}
+
+#suspend-duration-select:focus {
+    border-color: #00ff88;
+    outline: none;
+}
+/* 🔥 নতুন: Ad Loading Popup Style */
+#ad-loading-popup.popup-overlay {
+    /* বিদ্যমান popup-overlay স্টাইল ব্যবহার করে ডিসপ্লে ফ্লেক্স সেট করা হয়েছে */
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    right: 0; 
+    bottom: 0; 
+    background: rgba(0, 0, 0, 0.9); 
+    z-index: 9999; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    backdrop-filter: blur(8px);
+}
+
+.ad-popup {
+    /* বিদ্যমান .popup-card স্টাইল ব্যবহার করে কাস্টমাইজেশন */
+    background: var(--card-bg); 
+    padding: 30px; 
+    border-radius: 20px; /* চারকোনা কানিগুলা গুলগুল */
+    width: 90%; 
+    max-width: 320px; 
+    text-align: center; 
+    border: 2px solid var(--neon);
+    box-shadow: 0 0 40px rgba(0, 170, 255, 0.7);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.ad-popup h2 {
+    color: var(--neon); 
+    margin-bottom: 10px; 
+    font-size: 20px;
+}
+
+.timer-text {
+    font-size: 32px;
+    font-weight: bold;
+    color: var(--success); /* কাউন্টডাউনের জন্য সবুজ রং */
+    margin: 10px 0;
+    transition: color 0.3s;
+}
+
+.status-text-popup {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-top: 15px;
+}
+/* 🔥 নতুন: Ad Loading Popup Style */
+#ad-loading-popup.popup-overlay {
+    /* বিদ্যমান popup-overlay স্টাইল ব্যবহার করে ডিসপ্লে ফ্লেক্স সেট করা হয়েছে */
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    right: 0; 
+    bottom: 0; 
+    background: rgba(0, 0, 0, 0.9); 
+    z-index: 9999; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    backdrop-filter: blur(8px);
+}
+
+.ad-popup {
+    /* বিদ্যমান .popup-card স্টাইল ব্যবহার করে কাস্টমাইজেশন */
+    background: var(--card-bg); 
+    padding: 30px; 
+    border-radius: 20px; /* চারকোনা কানিগুলা গুলগুল */
+    width: 90%; 
+    max-width: 320px; 
+    text-align: center; 
+    border: 2px solid var(--neon);
+    box-shadow: 0 0 40px rgba(0, 170, 255, 0.7);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.ad-popup h2 {
+    color: var(--neon); 
+    margin-bottom: 10px; 
+    font-size: 20px;
+}
+
+.timer-text {
+    font-size: 32px;
+    font-weight: bold;
+    color: var(--success); /* কাউন্টডাউনের জন্য সবুজ রং */
+    margin: 10px 0;
+    line-height: 1;
+    transition: color 0.3s;
+}
+
+.status-text-popup {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-top: 15px;
+}
+
+/* 🔥 নতুন: Ad Load Fail & Success Popup styles */
+.ad-fail-popup-card, .ad-success-popup-card {
+    background: var(--card-bg); 
+    padding: 30px; 
+    border-radius: 20px; 
+    width: 90%; 
+    max-width: 320px; 
+    text-align: center; 
+    border: 2px solid var(--neon);
+    box-shadow: 0 0 40px rgba(0, 170, 255, 0.7);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.ad-fail-popup-card {
+    border-color: #ff4444; /* লাল বর্ডার */
+    box-shadow: 0 0 40px rgba(255, 68, 68, 0.7);
+}
+
+.ad-success-popup-card {
+    border-color: #00ff88; /* সবুজ বর্ডার */
+    box-shadow: 0 0 40px rgba(0, 255, 136, 0.7);
+}
+
+.fail-icon, .success-icon {
+    font-size: 50px;
+    margin: 10px 0;
+    line-height: 1;
+    display: block;
+}
+
+
+/* 🔥 নতুন: হিস্টোরি আইটেম ডিসপ্লে ও স্ট্যাটাস গ্রুপ */
+.history-item {
+  /* বিদ্যমান history-item স্টাইল */
+  background: rgba(0, 0, 0, 0.3);
+  padding: 16px;
+  border-radius: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* vertical alignment center */
+  gap: 14px;
+  border: 1px solid rgba(0, 170, 255, 0.2);
+}
+
+.history-item .item-details {
+    flex-grow: 1; /* বাম পাশ বেশি জায়গা নেবে */
+}
+
+.history-item .item-status-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* ডান দিকে এলাইন */
+    min-width: 80px;
+}
+
+.history-item .item-title {
+    font-size: 15px;
+    color: white;
+    margin-bottom: 4px;
+}
+
+.history-item .item-id,
+.history-item .item-time {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.history-item .item-status {
+    font-size: 14px;
+    font-weight: 800;
+    margin-top: 5px;
+}
+
+.history-item .no-history {
+    /* এটি যদি JS-এ ব্যবহার হয় */
+    text-align: center;
+    color: #88cfff;
+    font-style: italic;
+    padding: 20px 0;
+}
+/* 🔥 নতুন: অ্যামাউন্ট সিলেক্টর ডিজাইন */
+.amount-selector-container {
+    margin-bottom: 15px;
+    padding: 0;
+}
+
+.amount-selector-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 কলামে বাটন */
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.amount-btn {
+    background-color: var(--card-bg);
+    border: 1px solid var(--neon-light);
+    color: var(--text);
+    padding: 10px 5px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.amount-btn:hover {
+    background-color: rgba(0, 170, 255, 0.1);
+}
+
+/* অ্যাকটিভ সিলেকশন */
+.amount-btn.active {
+    background: var(--neon);
+    color: var(--bg);
+    border-color: var(--neon);
+    box-shadow: 0 0 15px var(--neon-light);
+}
+
+/* 🔥 নতুন: হিস্টোরি আইটেম ডিসপ্লে ও স্ট্যাটাস গ্রুপ */
+.history-item {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 16px;
+  border-radius: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center; 
+  gap: 14px;
+  border: 1px solid rgba(0, 170, 255, 0.2);
+}
+
+.history-item .item-details {
+    flex-grow: 1; 
+}
+
+.history-item .item-status-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; 
+    min-width: 80px;
+}
+
+.history-item .item-title {
+    font-size: 15px;
+    color: white;
+    margin-bottom: 4px;
+}
+
+.history-item .item-id,
+.history-item .item-time {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.history-item .item-status {
+    font-size: 14px;
+    font-weight: 800;
+    margin-top: 5px;
+}
+
+.no-history {
+    text-align: center;
+    color: #88cfff;
+    font-style: italic;
+    padding: 20px 0;
+}
+/* সফলতার পপআপের জন্য অতিরিক্ত রঙ যোগ */
+:root {
+  --success: #00ff88; /* সবুজ রঙ */
+}
+/* 🔥 নতুন: অ্যামাউন্ট সিলেক্টর ডিজাইন */
+.amount-selector-container {
+    margin-bottom: 15px;
+    padding: 0;
+}
+
+.amount-selector-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.amount-btn {
+    background-color: var(--card-bg);
+    border: 1px solid var(--neon-light);
+    color: var(--text);
+    padding: 10px 5px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.amount-btn:hover {
+    background-color: rgba(0, 170, 255, 0.1);
+}
+
+/* অ্যাকটিভ সিলেকশন */
+.amount-btn.active {
+    background: var(--neon);
+    color: var(--bg);
+    border-color: var(--neon);
+    box-shadow: 0 0 15px var(--neon-light);
+}
+
+/* 🔥 নতুন: হিস্টোরি আইটেম ডিসপ্লে ও স্ট্যাটাস গ্রুপ */
+.history-item {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 16px;
+  border-radius: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center; 
+  gap: 14px;
+  border: 1px solid rgba(0, 170, 255, 0.2);
+}
+
+.history-item .item-details {
+    flex-grow: 1; 
+}
+
+.history-item .item-status-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; 
+    min-width: 80px;
+}
+
+.history-item .item-title {
+    font-size: 15px;
+    color: white;
+    margin-bottom: 4px;
+}
+
+.history-item .item-id,
+.history-item .item-time {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.history-item .item-status {
+    font-size: 14px;
+    font-weight: 800;
+    margin-top: 5px;
+}
+
+.no-history {
+    text-align: center;
+    color: #88cfff;
+    font-style: italic;
+    padding: 20px 0;
+}
+/* 🔥 নতুন: জিরো এন্ট্রি এরর মেসেজ স্টাইল */
+.zero-error-text {
+    color: #ffaa00; /* হলুদ/কমলা সতর্কতা রঙ */
+    font-size: 13px;
+    margin-top: -5px;
+    margin-bottom: 10px;
+    font-weight: 500;
+    display: none; /* ডিফল্টভাবে এটি লুকানো থাকবে */
+}
+
+/* নিশ্চিত করতে যে --success রঙটি সংজ্ঞায়িত আছে */
+:root {
+  --success: #00ff88; 
+}
+/* --- POPUP / OVERLAY STYLES (REQUIRED FOR SUCCESS POPUP) --- */
+
+/* ওভারলে, যা পুরো স্ক্রিন ঢেকে দেয় */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 10000; /* সর্বোচ্চ Z-Index নিশ্চিত করা হলো */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(8px);
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* পপআপ কার্ডের ভেতরের স্টাইল */
+.popup-card {
+    background: rgba(30, 30, 50, 0.9);
+    padding: 30px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 350px;
+    text-align: center;
+    border: 2px solid #00ff88;
+    box-shadow: 0 0 40px rgba(0, 255, 136, 0.7);
+    animation: bounceIn 0.5s ease-out; /* একটি ছোট অ্যানিমেশন যোগ করা হলো */
+}
+
+/* অ্যানিমেশন (যদি আপনার CSS ফাইল এ না থাকে) */
+@keyframes bounceIn {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    60% {
+        transform: scale(1.05);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* পপআপের ভেতরের হেডিং */
+.popup-card h2 {
+    color: #00ff88;
+    margin-bottom: 15px;
+    font-size: 20px;
+}
+
+/* পপআপের ভেতরের টেক্সট */
+.popup-card p {
+    color: #e0f7ff;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+/* পপআপের বাটন (যদি প্রয়োজন হয়) */
+.popup-card .btn-primary {
+    margin-top: 25px;
+    width: 100%;
+    background: #00ff88;
+    color: #1a1a2e;
+    font-weight: bold;
+    /* আপনার অন্যান্য বাটন স্টাইল এখানে প্রযোজ্য হবে */
+}
+
